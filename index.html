@@ -2,77 +2,117 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOLY HAIR VIP系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>美業客戶管理</title>
     <style>
-        body { background-color: #000; color: #D4AF37; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
-        .page { display: none; padding: 20px; }
-        .active { display: block; }
-        h1 { color: #D4AF37; text-align: center; font-size: 28px; letter-spacing: 3px; }
-
-        .form-group { margin-bottom: 22px; }
-        label { display: block; color: #D4AF37; font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        /* 緊湊型版面設定 */
+        body { 
+            background-color: #000; 
+            color: #D4AF37; 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding: 10px 15px 70px 15px; /* 縮小邊距 */
+            overflow-x: hidden;
+        }
         
-        /* 金色呼吸燈輸入框 */
+        .page { display: none; }
+        .active { display: block; }
+        
+        /* 標題縮小 */
+        h1 { 
+            color: #D4AF37; 
+            text-align: center; 
+            font-size: 22px; 
+            margin: 10px 0; 
+            letter-spacing: 2px; 
+        }
+
+        /* 縮小表單間距 */
+        .form-group { margin-bottom: 12px; }
+        label { 
+            display: block; 
+            color: #D4AF37; 
+            font-size: 16px; 
+            font-weight: bold; 
+            margin-bottom: 4px; 
+        }
+        
+        /* 輸入框精緻化 */
         input, select, textarea {
             width: 100%;
-            padding: 16px;
-            background-color: #121212;
-            border: 2px solid #D4AF37;
-            border-radius: 15px;
-            color: #D4AF37;
-            font-size: 20px;
+            padding: 10px 12px; /* 縮小高度 */
+            background-color: #0a0a0a;
+            border: 1.5px solid #D4AF37; 
+            border-radius: 10px;
+            color: #D4AF37; 
+            font-size: 17px; 
             box-sizing: border-box;
-            animation: breathe 2.5s infinite ease-in-out;
+            animation: breathe 3s infinite ease-in-out;
         }
 
-        /* 針對時間選擇器的金色圖標與文字優化 */
-        input[type="datetime-local"] { color-scheme: dark; }
-
+        /* 呼吸效果調輕微一點，避免刺眼 */
         @keyframes breathe {
-            0% { border-color: #8A6D3B; box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
-            50% { border-color: #FFD700; box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
-            100% { border-color: #8A6D3B; box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+            0% { border-color: #8A6D3B; box-shadow: 0 0 3px rgba(212, 175, 55, 0.2); }
+            50% { border-color: #FFD700; box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+            100% { border-color: #8A6D3B; box-shadow: 0 0 3px rgba(212, 175, 55, 0.2); }
         }
 
+        input:focus { outline: none; background: #111; }
+
+        /* 橫向排列縮小 */
+        .row { display: flex; gap: 8px; }
+
+        /* 按鈕精緻化 */
         .btn-save {
             width: 100%;
-            padding: 18px;
+            padding: 12px;
             background: linear-gradient(145deg, #D4AF37, #8A6D3B);
             color: #000;
             border: none;
-            border-radius: 35px;
-            font-size: 22px;
+            border-radius: 25px;
+            font-size: 18px;
             font-weight: bold;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
-        .card { background: #111; border: 2px solid #D4AF37; padding: 18px; margin-bottom: 15px; border-radius: 15px; }
-        .card h3 { margin: 0; color: #FFD700; font-size: 24px; }
-        .card p { margin: 10px 0; font-size: 19px; color: #D4AF37; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        /* 名單卡片縮小 */
+        .card {
+            background: #111;
+            border: 1px solid #D4AF37;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+        }
+        .card h3 { margin: 0; color: #FFD700; font-size: 18px; }
+        .card p { margin: 5px 0; font-size: 15px; color: #D4AF37; border-bottom: 1px solid #222; padding-bottom: 3px; }
 
-        .nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; height: 80px; border-top: 2px solid #D4AF37; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8A6D3B; text-decoration: none; }
-        .nav-item.active-nav { color: #FFD700; font-weight: bold; }
-        .nav-icon { font-size: 30px; }
+        /* 底部選單高度縮減 */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; height: 60px; border-top: 1px solid #D4AF37; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8A6D3B; font-size: 12px; }
+        .nav-item.active-nav { color: #FFD700; }
+        .nav-icon { font-size: 22px; }
     </style>
 </head>
 <body>
 
     <div id="page1" class="page active">
-        <h1>HOLY HAIR</h1>
-        <div class="form-group"><label>貴賓姓名</label><input type="text" id="name"></div>
-        <div class="form-group"><label>聯繫電話</label><input type="tel" id="phone"></div>
+        <h1>美業客戶管理</h1>
         
-        <div style="display: flex; gap: 10px;">
+        <div class="row">
+            <div class="form-group" style="flex:1;"><label>貴賓姓名</label><input type="text" id="name"></div>
+            <div class="form-group" style="flex:1.5;"><label>聯繫電話</label><input type="tel" id="phone"></div>
+        </div>
+        
+        <div class="row">
             <div class="form-group" style="flex:1;"><label>血型</label><select id="blood"><option>A型</option><option>B型</option><option>O型</option><option>AB型</option></select></div>
             <div class="form-group" style="flex:1;"><label>星座</label><select id="constellation"><option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option><option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option><option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>雙魚座</option></select></div>
         </div>
 
-        <div class="form-group"><label>下次預約項目</label><input type="text" id="bookItem" placeholder="例如：染髮+剪髮"></div>
+        <div class="form-group"><label>下次預約項目</label><input type="text" id="bookItem" placeholder="例如：美甲/美睫"></div>
         <div class="form-group"><label>下次預約時間</label><input type="datetime-local" id="bookTime"></div>
         
-        <div class="form-group"><label>心得備註</label><textarea id="note" rows="3"></textarea></div>
+        <div class="form-group"><label>心得備註</label><textarea id="note" rows="2"></textarea></div>
+        
         <button class="btn-save" onclick="handleSave()">確認儲存資料</button>
     </div>
 
@@ -82,8 +122,12 @@
     </div>
 
     <div class="nav">
-        <div class="nav-item active-nav" id="nav1" onclick="showPage(1)"><span class="nav-icon">💎</span><span>資料登記</span></div>
-        <div class="nav-item" id="nav2" onclick="showPage(2)"><span class="nav-icon">📜</span><span>名單總覽</span></div>
+        <div class="nav-item active-nav" id="nav1" onclick="showPage(1)">
+            <span class="nav-icon">💎</span><span>資料登記</span>
+        </div>
+        <div class="nav-item" id="nav2" onclick="showPage(2)">
+            <span class="nav-icon">📜</span><span>名單總覽</span>
+        </div>
     </div>
 
     <script>
@@ -120,15 +164,16 @@
         function renderList() {
             const container = document.getElementById('list-container');
             const list = JSON.parse(localStorage.getItem('holyData') || '[]');
-            if(list.length === 0) { container.innerHTML = '<p style="text-align:center; color:#D4AF37; font-size:20px;">尚無記錄</p>'; return; }
+            if(list.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#D4AF37; font-size:16px;">尚無記錄</p>';
+                return;
+            }
             container.innerHTML = list.reverse().map(c => `
                 <div class="card">
-                    <h3>${c.name}</h3>
-                    <p>📞 電話：${c.phone}</p>
-                    <p>✨ ${c.blood} / ${c.constellation}</p>
-                    <p>📅 預約項目：${c.bookItem}</p>
-                    <p>⏰ 預約時間：${c.bookTime.replace('T', ' ')}</p>
-                    <p>📝 備註：${c.note}</p>
+                    <h3>${c.name} <small style="font-size:12px; color:#888;">${c.date}</small></h3>
+                    <p>📞 ${c.phone} | ✨ ${c.blood}/${c.constellation}</p>
+                    <p>📅 ${c.bookItem} | ⏰ ${c.bookTime.replace('T', ' ')}</p>
+                    <p>📝 ${c.note}</p>
                 </div>
             `).join('');
         }
