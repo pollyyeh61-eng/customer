@@ -3,106 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HolyHair 尊榮管理系統</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
+    <title>HOLY HAIR 客戶管理系統</title>
     <style>
-        body { background-color: #050505; color: #D4AF37; font-family: sans-serif; }
-        .luxury-card { background: #121212; border: 1px solid #8E6D2F33; border-radius: 16px; }
-        /* 4秒呼吸發光動畫 */
-        @keyframes breathe {
-            0%, 100% { box-shadow: 0 0 5px #8E6D2F; border-color: #8E6D2F; }
-            50% { box-shadow: 0 0 20px #D4AF37; border-color: #D4AF37; }
+        :root {
+            --gold: #D4AF37;
+            --dark-bg: #000000;
+            --input-bg: #1A1A1A;
+            --text-gray: #AAAAAA;
         }
-        .breathe-btn {
-            animation: breathe 4s infinite ease-in-out;
-            background: linear-gradient(to right, #121212, #D4AF3722);
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+            margin: 0;
+            padding-bottom: 70px; /* 為底部選單留空間 */
         }
+
+        /* 標題區 */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .header h1 {
+            color: var(--gold);
+            letter-spacing: 4px;
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            color: var(--text-gray);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* 頁面切換控制 */
+        .page { display: none; padding: 0 20px; }
+        .page.active { display: block; }
+
+        /* 表單樣式 */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; color: var(--text-gray); font-size: 14px; margin-bottom: 8px; }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--input-bg);
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: var(--gold);
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        .row { display: flex; gap: 10px; }
+        .row .form-group { flex: 1; }
+
+        /* 按鈕 */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(145deg, #444, #111);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 名單頁樣式 */
+        .customer-card {
+            background: #1a1a1a;
+            border-left: 4px solid var(--gold);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .customer-card h3 { margin: 0; color: var(--gold); }
+        .customer-card p { margin: 5px 0 0; font-size: 13px; color: #ccc; }
+
+        /* 底部導覽列 */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #111;
+            display: flex;
+            border-top: 1px solid #333;
+            height: 60px;
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .nav-item.active { color: var(--gold); }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
-    <div id="app" class="min-h-screen p-6 max-w-md mx-auto">
-        <header class="text-center py-8">
-            <h1 class="text-2xl font-bold tracking-widest text-gold">HOLY HAIR</h1>
-            <p class="text-xs text-gray-500 mt-2">至臻貴賓資料同步系統</p>
-        </header>
 
-        <div class="space-y-6">
-            <div>
-                <label class="text-xs text-gray-400">貴賓姓名</label>
-                <input v-model="form.name" type="text" class="w-full luxury-card p-3 mt-1 outline-none focus:border-gold">
-            </div>
-            <div>
-                <label class="text-xs text-gray-400">聯繫電話</label>
-                <input v-model="form.phone" type="text" class="w-full luxury-card p-3 mt-1 outline-none focus:border-gold">
-            </div>
-            <div>
-                <label class="text-xs text-gray-400">專屬備註</label>
-                <textarea v-model="form.note" class="w-full luxury-card p-3 mt-1 outline-none focus:border-gold" rows="3"></textarea>
-            </div>
-
-            <button @click="saveData" class="w-full h-14 rounded-full breathe-btn font-bold tracking-widest mt-4">
-                確認儲存資料
-            </button>
+    <div id="page-input" class="page active">
+        <div class="header">
+            <h1>HOLY HAIR</h1>
+            <p>至臻貴賓資料同步系統</p>
         </div>
 
-        <div class="mt-12 pt-8 border-t border-gray-800">
-            <h2 class="text-gold font-bold mb-4">即時名單</h2>
-            <div v-for="item in customers" :key="item.id" class="luxury-card p-4 mb-3 flex justify-between items-center">
-                <div>
-                    <div class="font-bold">[[ item.name ]]</div>
-                    <div class="text-xs text-gray-500">[[ item.phone ]]</div>
-                </div>
-                <div class="text-gold text-xs">查看詳情 ></div>
+        <div class="form-group">
+            <label>貴賓姓名</label>
+            <input type="text" id="name" placeholder="請輸入姓名">
+        </div>
+
+        <div class="form-group">
+            <label>聯繫電話</label>
+            <input type="tel" id="phone" placeholder="請輸入電話">
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label>血型</label>
+                <select id="blood">
+                    <option>A 型</option>
+                    <option>B 型</option>
+                    <option>O 型</option>
+                    <option>AB 型</option>
+                </select>
             </div>
+            <div class="form-group">
+                <label>星座</label>
+                <select id="constellation">
+                    <option>牡羊座</option><option>金牛座</option><option>雙子座</option>
+                    <option>巨蟹座</option><option>獅子座</option><option>處女座</option>
+                    <option>天秤座</option><option>天蠍座</option><option>射手座</option>
+                    <option>摩羯座</option><option>水瓶座</option><option>雙魚座</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="border: 1px solid #333; padding: 15px; border-radius: 15px; margin-bottom: 20px;">
+            <label style="color: var(--gold);">📅 下次預約設定</label>
+            <div class="form-group">
+                <input type="datetime-local" id="next-time">
+            </div>
+            <div class="form-group">
+                <input type="text" id="next-item" placeholder="預約項目 (如：剪染護)">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>專屬備註</label>
+            <textarea id="note" rows="3" placeholder="請輸入備註..."></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="saveData()">確認儲存資料</button>
+    </div>
+
+    <div id="page-list" class="page">
+        <div class="header">
+            <h1>名單總覽</h1>
+            <p>即時客戶名單管理</p>
+        </div>
+        <div id="customer-list-container">
+            <p style="text-align: center; color: #666;">尚無客戶資料</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchPage('page-input', this)">
+            <span class="nav-icon">📝</span>
+            <span>資料登記</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('page-list', this)">
+            <span class="nav-icon">📋</span>
+            <span>名單總覽</span>
         </div>
     </div>
 
     <script>
-        // Firebase 配置
-        const firebaseConfig = {
-            apiKey: "AIzaSyCOhBN9TH3UJSOSx5XVyQ08f_2RUckvXYU",
-            authDomain: "holyhairsalon-f73bf.firebaseapp.com",
-            projectId: "holyhairsalon-f73bf",
-            storageBucket: "holyhairsalon-f73bf.firebasestorage.app",
-            messagingSenderId: "960169055224",
-            appId: "1:960169055224:web:96d6d47280c5d543bf3c0d"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        let customers = [];
 
-        const { createApp, ref, onMounted } = Vue;
+        function switchPage(pageId, element) {
+            // 切換分頁顯示
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
 
-        createApp({
-            delimiters: ['[[', ']]'],
-            setup() {
-                const form = ref({ name: '', phone: '', note: '' });
-                const customers = ref([]);
+            // 切換選單顏色
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+            
+            if(pageId === 'page-list') renderList();
+        }
 
-                const saveData = async () => {
-                    if (!form.value.name) return alert('請輸入姓名');
-                    await db.collection('customers').doc(form.value.name).set({
-                        ...form.value,
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                    alert('貴賓資料已同步');
-                    form.value = { name: '', phone: '', note: '' };
-                };
+        function saveData() {
+            const data = {
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                blood: document.getElementById('blood').value,
+                constellation: document.getElementById('constellation').value,
+                nextTime: document.getElementById('next-time').value,
+                nextItem: document.getElementById('next-item').value,
+                note: document.getElementById('note').value
+            };
 
-                const fetchData = () => {
-                    db.collection('customers').orderBy('lastUpdated', 'desc').onSnapshot(snap => {
-                        customers.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    });
-                };
+            if(!data.name) { alert('請輸入姓名'); return; }
 
-                onMounted(fetchData);
+            customers.push(data);
+            alert('儲存成功！');
+            
+            // 清空表單
+            document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        }
 
-                return { form, customers, saveData };
-            }
-        }).mount('#app');
+        function renderList() {
+            const container = document.getElementById('customer-list-container');
+            if(customers.length === 0) return;
+
+            container.innerHTML = customers.map(c => `
+                <div class="customer-card">
+                    <h3>${c.name} (${c.phone})</h3>
+                    <p>✨ ${c.constellation} | ${c.blood}</p>
+                    <p>📅 下次預約：${c.nextTime || '未設定'} - ${c.nextItem || ''}</p>
+                    <p>📝 備註：${c.note}</p>
+                </div>
+            `).join('');
+        }
     </script>
 </body>
 </html>
