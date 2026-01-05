@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:convert';
-import 'package:web/web.dart' as web;
-import 'dart:js_interop';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,171 +11,125 @@ void main() async {
       appId: "1:960169055224:web:96d6d47280c5d543bf3c0d",
       messagingSenderId: "960169055224",
       projectId: "holyhairsalon-f73bf",
-      authDomain: "holyhairsalon-f73bf.firebaseapp.com",
-      storageBucket: "holyhairsalon-f73bf.firebasestorage.app",
     ),
   );
-  runApp(const LuxuryCustomerApp());
+  runApp(const HolyHairApp());
 }
 
-class LuxuryColor {
-  static const Color gold = Color(0xFFD4AF37);
-  static const Color darkGold = Color(0xFF8E6D2F);
-  static const Color bg = Color(0xFF0A0A0A);
-  static const Color card = Color(0xFF161616);
-}
-
-class LuxuryCustomerApp extends StatelessWidget {
-  const LuxuryCustomerApp({super.key});
+class HolyHairApp extends StatelessWidget {
+  const HolyHairApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(brightness: Brightness.dark, scaffoldBackgroundColor: LuxuryColor.bg),
-      home: const MainTabScreen(),
-    );
-  }
-}
-
-class MainTabScreen extends StatefulWidget {
-  const MainTabScreen({super.key});
-  @override
-  State<MainTabScreen> createState() => _MainTabScreenState();
-}
-
-class _MainTabScreenState extends State<MainTabScreen> {
-  int _currentIndex = 0;
-  final List<Widget> _pages = [const CustomerFormPage(), const CustomerListPage()];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: LuxuryColor.bg,
-        selectedItemColor: LuxuryColor.gold,
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.person_add), label: '新增'),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: '名單'),
-        ],
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0A0A0A), // 黑金主色
+        primaryColor: const Color(0xFFD4AF37),
       ),
+      home: const SalonHomePage(),
     );
   }
 }
 
-// --- 客戶新增頁面 (含4秒呼吸按鈕) ---
-class CustomerFormPage extends StatefulWidget {
-  const CustomerFormPage({super.key});
+class SalonHomePage extends StatefulWidget {
+  const SalonHomePage({super.key});
   @override
-  State<CustomerFormPage> createState() => _CustomerFormPageState();
+  State<SalonHomePage> createState() => _SalonHomePageState();
 }
 
-class _CustomerFormPageState extends State<CustomerFormPage> with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
+class _SalonHomePageState extends State<SalonHomePage> with SingleTickerProviderStateMixin {
+  late AnimationController _glowController;
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _noteCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
+    // 4 秒週期的呼吸發光
+    _glowController = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
   }
 
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _glowController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('HolyHair 尊榮檔案', style: TextStyle(color: LuxuryColor.gold))),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(25),
-        child: Column(
-          children: [
-            _buildInput(_nameCtrl, "貴賓姓名", Icons.person_outline),
-            _buildInput(_phoneCtrl, "連絡電話", Icons.phone_iphone),
-            _buildInput(_noteCtrl, "備註項目", Icons.auto_awesome, maxLines: 3),
-            const SizedBox(height: 40),
-            AnimatedBuilder(
-              animation: _ctrl,
-              builder: (context, child) {
-                final color = Color.lerp(LuxuryColor.darkGold, LuxuryColor.gold, _ctrl.value)!;
-                return GestureDetector(
-                  onTap: () async {
-                    if (_nameCtrl.text.isEmpty) return;
-                    await FirebaseFirestore.instance.collection('customers').doc(_nameCtrl.text).set({
-                      'name': _nameCtrl.text, 'phone': _phoneCtrl.text, 'note': _noteCtrl.text,
-                      'lastUpdated': FieldValue.serverTimestamp(),
-                    }, SetOptions(merge: true));
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 已同步雲端")));
-                  },
-                  child: Container(
-                    height: 60, width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: color, width: 2),
-                      boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 15 * _ctrl.value)],
-                      gradient: LinearGradient(colors: [LuxuryColor.card, color.withOpacity(0.2)]),
-                    ),
-                    child: Center(child: Text("確認儲存資料", style: TextStyle(color: color, fontWeight: FontWeight.bold, letterSpacing: 2))),
-                  ),
-                );
-              },
-            ),
-          ],
+      appBar: AppBar(
+        title: const Text('HOLY HAIR 尊榮管理', style: TextStyle(color: Color(0xFFD4AF37), letterSpacing: 4)),
+        backgroundColor: Colors.transparent,
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 500), // 限制手機尺寸寬度
+          padding: const EdgeInsets.all(30),
+          child: Column(
+            children: [
+              _buildInput(_nameCtrl, "貴賓姓名", Icons.person_outline),
+              _buildInput(_phoneCtrl, "聯繫電話", Icons.phone_iphone),
+              const SizedBox(height: 50),
+              _buildBreathingButton(),
+              const SizedBox(height: 40),
+              const Divider(color: Color(0xFF8E6D2F)),
+              const Text("即時名單同步中", style: TextStyle(color: Color(0xFF8E6D2F), fontSize: 12)),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildInput(TextEditingController c, String l, IconData i, {int maxLines = 1}) {
+  Widget _buildInput(TextEditingController ctrl, String label, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: TextField(
-        controller: c, maxLines: maxLines,
+        controller: ctrl,
         decoration: InputDecoration(
-          prefixIcon: Icon(i, color: LuxuryColor.darkGold), labelText: l,
-          filled: true, fillColor: LuxuryColor.card,
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
+          prefixIcon: Icon(icon, color: const Color(0xFFD4AF37)),
+          labelText: label,
+          filled: true,
+          fillColor: const Color(0xFF161616),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Colors.white10)),
         ),
       ),
     );
   }
-}
 
-// --- 名單總覽頁面 (StreamBuilder) ---
-class CustomerListPage extends StatelessWidget {
-  const CustomerListPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('至臻名單總覽')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('customers').orderBy('lastUpdated', descending: true).snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final docs = snapshot.data!.docs;
-          return ListView.builder(
-            padding: const EdgeInsets.all(15),
-            itemCount: docs.length,
-            itemBuilder: (context, i) {
-              final data = docs[i].data() as Map<String, dynamic>;
-              return Card(
-                color: LuxuryColor.card,
-                margin: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
-                  title: Text(data['name'] ?? '', style: const TextStyle(color: LuxuryColor.gold)),
-                  subtitle: Text(data['phone'] ?? ''),
-                  trailing: const Icon(Icons.chevron_right, color: LuxuryColor.darkGold),
-                ),
-              );
-            },
-          );
-        },
-      ),
+  Widget _buildBreathingButton() {
+    return AnimatedBuilder(
+      animation: _glowController,
+      builder: (context, child) {
+        final gold = const Color(0xFFD4AF37);
+        final darkGold = const Color(0xFF8E6D2F);
+        final color = Color.lerp(darkGold, gold, _glowController.value)!;
+
+        return GestureDetector(
+          onTap: () async {
+            if (_nameCtrl.text.isEmpty) return;
+            await FirebaseFirestore.instance.collection('customers').doc(_nameCtrl.text).set({
+              'name': _nameCtrl.text,
+              'phone': _phoneCtrl.text,
+              'time': FieldValue.serverTimestamp(),
+            });
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("已同步至 Firebase")));
+          },
+          child: Container(
+            height: 65,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(35),
+              border: Border.all(color: color, width: 2),
+              boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 20 * _glowController.value, spreadRadius: 2)],
+              gradient: LinearGradient(colors: [const Color(0xFF161616), color.withOpacity(0.2)]),
+            ),
+            child: Center(child: Text("確認儲存資料", style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 2))),
+          ),
+        );
+      },
     );
   }
 }
