@@ -11,7 +11,30 @@
             --border-gray: #777777; /* 常態下的框線顏色 */
             --dark-bg: #000000;
         }
+// --- 您的 Firebase 配置 (金鑰區) ---
+const firebaseConfig = {
+  apiKey: "您的 Google API Key", // 請填入您原本的金鑰
+  authDomain: "pollyyeh61-eng.firebaseapp.com",
+  projectId: "pollyyeh61-eng",
+  storageBucket: "pollyyeh61-eng.appspot.com",
+  messagingSenderId: "您的 ID",
+  appId: "您的 App ID"
+};
 
+// --- 初始化 Firebase 與 同步邏輯 ---
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 儲存資料時同步執行：
+function saveData(data) {
+    // 1. 存本地 (LocalStorage)
+    localStorage.setItem('customerData', JSON.stringify(data));
+    
+    // 2. 存雲端 (Firebase)
+    db.collection("customers").add(data)
+      .then(() => console.log("同步成功"))
+      .catch((error) => console.error("同步失敗", error));
+}
         body {
             font-family: sans-serif;
             background-color: var(--dark-bg);
@@ -186,3 +209,4 @@
     </script>
 </body>
 </html>
+
