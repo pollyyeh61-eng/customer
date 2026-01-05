@@ -1,135 +1,108 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HolyHair 尊榮管理系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyCOhBN9TH3UJSOSx5XVyQ08f_2RUckvXYU",
-      appId: "1:960169055224:web:96d6d47280c5d543bf3c0d",
-      messagingSenderId: "960169055224",
-      projectId: "holyhairsalon-f73bf",
-    ),
-  );
-  runApp(const HolyHairApp());
-}
+    <style>
+        body { background-color: #050505; color: #D4AF37; font-family: sans-serif; }
+        .luxury-card { background: #121212; border: 1px solid #8E6D2F33; border-radius: 16px; }
+        /* 4秒呼吸發光動畫 */
+        @keyframes breathe {
+            0%, 100% { box-shadow: 0 0 5px #8E6D2F; border-color: #8E6D2F; }
+            50% { box-shadow: 0 0 20px #D4AF37; border-color: #D4AF37; }
+        }
+        .breathe-btn {
+            animation: breathe 4s infinite ease-in-out;
+            background: linear-gradient(to right, #121212, #D4AF3722);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen p-6 max-w-md mx-auto">
+        <header class="text-center py-8">
+            <h1 class="text-2xl font-bold tracking-widest text-gold">HOLY HAIR</h1>
+            <p class="text-xs text-gray-500 mt-2">至臻貴賓資料同步系統</p>
+        </header>
 
-class HolyHairApp extends StatelessWidget {
-  const HolyHairApp({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A), // 黑金主色
-        primaryColor: const Color(0xFFD4AF37),
-      ),
-      home: const SalonHomePage(),
-    );
-  }
-}
+        <div class="space-y-6">
+            <div>
+                <label class="text-xs text-gray-400">貴賓姓名</label>
+                <input v-model="form.name" type="text" class="w-full luxury-card p-3 mt-1 outline-none focus:border-gold">
+            </div>
+            <div>
+                <label class="text-xs text-gray-400">聯繫電話</label>
+                <input v-model="form.phone" type="text" class="w-full luxury-card p-3 mt-1 outline-none focus:border-gold">
+            </div>
+            <div>
+                <label class="text-xs text-gray-400">專屬備註</label>
+                <textarea v-model="form.note" class="w-full luxury-card p-3 mt-1 outline-none focus:border-gold" rows="3"></textarea>
+            </div>
 
-class SalonHomePage extends StatefulWidget {
-  const SalonHomePage({super.key});
-  @override
-  State<SalonHomePage> createState() => _SalonHomePageState();
-}
+            <button @click="saveData" class="w-full h-14 rounded-full breathe-btn font-bold tracking-widest mt-4">
+                確認儲存資料
+            </button>
+        </div>
 
-class _SalonHomePageState extends State<SalonHomePage> with SingleTickerProviderStateMixin {
-  late AnimationController _glowController;
-  final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+        <div class="mt-12 pt-8 border-t border-gray-800">
+            <h2 class="text-gold font-bold mb-4">即時名單</h2>
+            <div v-for="item in customers" :key="item.id" class="luxury-card p-4 mb-3 flex justify-between items-center">
+                <div>
+                    <div class="font-bold">[[ item.name ]]</div>
+                    <div class="text-xs text-gray-500">[[ item.phone ]]</div>
+                </div>
+                <div class="text-gold text-xs">查看詳情 ></div>
+            </div>
+        </div>
+    </div>
 
-  @override
-  void initState() {
-    super.initState();
-    // 4 秒週期的呼吸發光
-    _glowController = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
-  }
+    <script>
+        // Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOhBN9TH3UJSOSx5XVyQ08f_2RUckvXYU",
+            authDomain: "holyhairsalon-f73bf.firebaseapp.com",
+            projectId: "holyhairsalon-f73bf",
+            storageBucket: "holyhairsalon-f73bf.firebasestorage.app",
+            messagingSenderId: "960169055224",
+            appId: "1:960169055224:web:96d6d47280c5d543bf3c0d"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-  @override
-  void dispose() {
-    _glowController.dispose();
-    super.dispose();
-  }
+        const { createApp, ref, onMounted } = Vue;
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('HOLY HAIR 尊榮管理', style: TextStyle(color: Color(0xFFD4AF37), letterSpacing: 4)),
-        backgroundColor: Colors.transparent,
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500), // 限制手機尺寸寬度
-          padding: const EdgeInsets.all(30),
-          child: Column(
-            children: [
-              _buildInput(_nameCtrl, "貴賓姓名", Icons.person_outline),
-              _buildInput(_phoneCtrl, "聯繫電話", Icons.phone_iphone),
-              const SizedBox(height: 50),
-              _buildBreathingButton(),
-              const SizedBox(height: 40),
-              const Divider(color: Color(0xFF8E6D2F)),
-              const Text("即時名單同步中", style: TextStyle(color: Color(0xFF8E6D2F), fontSize: 12)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+        createApp({
+            delimiters: ['[[', ']]'],
+            setup() {
+                const form = ref({ name: '', phone: '', note: '' });
+                const customers = ref([]);
 
-  Widget _buildInput(TextEditingController ctrl, String label, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: TextField(
-        controller: ctrl,
-        decoration: InputDecoration(
-          prefixIcon: Icon(icon, color: const Color(0xFFD4AF37)),
-          labelText: label,
-          filled: true,
-          fillColor: const Color(0xFF161616),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: const BorderSide(color: Colors.white10)),
-        ),
-      ),
-    );
-  }
+                const saveData = async () => {
+                    if (!form.value.name) return alert('請輸入姓名');
+                    await db.collection('customers').doc(form.value.name).set({
+                        ...form.value,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    alert('貴賓資料已同步');
+                    form.value = { name: '', phone: '', note: '' };
+                };
 
-  Widget _buildBreathingButton() {
-    return AnimatedBuilder(
-      animation: _glowController,
-      builder: (context, child) {
-        final gold = const Color(0xFFD4AF37);
-        final darkGold = const Color(0xFF8E6D2F);
-        final color = Color.lerp(darkGold, gold, _glowController.value)!;
+                const fetchData = () => {
+                    db.collection('customers').orderBy('lastUpdated', 'desc').onSnapshot(snap => {
+                        customers.value = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    });
+                };
 
-        return GestureDetector(
-          onTap: () async {
-            if (_nameCtrl.text.isEmpty) return;
-            await FirebaseFirestore.instance.collection('customers').doc(_nameCtrl.text).set({
-              'name': _nameCtrl.text,
-              'phone': _phoneCtrl.text,
-              'time': FieldValue.serverTimestamp(),
-            });
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("已同步至 Firebase")));
-          },
-          child: Container(
-            height: 65,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(35),
-              border: Border.all(color: color, width: 2),
-              boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 20 * _glowController.value, spreadRadius: 2)],
-              gradient: LinearGradient(colors: [const Color(0xFF161616), color.withOpacity(0.2)]),
-            ),
-            child: Center(child: Text("確認儲存資料", style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18, letterSpacing: 2))),
-          ),
-        );
-      },
-    );
-  }
-}
+                onMounted(fetchData);
+
+                return { form, customers, saveData };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
