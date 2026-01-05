@@ -1,79 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // 需安裝 firebase_core
-import 'package:cloud_firestore/cloud_firestore.dart'; // 需安裝 cloud_firestore
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:web/web.dart' as web;
 import 'dart:js_interop';
 
-// 注意：請確保已在 Firebase Console 完成設定，並執行 flutterfire configure
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(); 
-  runApp(const CustomerWebPage());
+  // 初始化 Firebase 並帶入您的金鑰
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyCOhBN9TH3UJSOSx5XVyQ08f_2RUckvXYU",
+      appId: "1:960169055224:web:96d6d47280c5d543bf3c0d",
+      messagingSenderId: "960169055224",
+      projectId: "holyhairsalon-f73bf",
+      authDomain: "holyhairsalon-f73bf.firebaseapp.com",
+      storageBucket: "holyhairsalon-f73bf.firebasestorage.app",
+    ),
+  );
+  runApp(const LuxuryCustomerApp());
 }
 
-class LuxuryTheme {
-  static const Color blackBg = Color(0xFF0A0A0A); // 深墨黑
-  static const Color darkCard = Color(0xFF161616); // 黑色卡片
-  static const Color mutedGold = Color(0xFF8E6D2F); // 暗金
-  static const Color brightGold = Color(0xFFD4AF37); // 亮金
+// 奢華黑金配色定義
+class LuxuryColor {
+  static const Color gold = Color(0xFFD4AF37); // 亮金
+  static const Color darkGold = Color(0xFF8E6D2F); // 暗金
+  static const Color bg = Color(0xFF0A0A0A); // 深墨黑
+  static const Color card = Color(0xFF161616); // 黑色卡片
 }
 
-class CustomerWebPage extends StatelessWidget {
-  const CustomerWebPage({super.key});
-
+class LuxuryCustomerApp extends StatelessWidget {
+  const LuxuryCustomerApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: '至臻客戶管理系統',
       theme: ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: LuxuryTheme.blackBg,
-        primaryColor: LuxuryTheme.brightGold,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: LuxuryTheme.blackBg,
-          elevation: 0,
-          centerTitle: true,
-          titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: LuxuryTheme.brightGold, letterSpacing: 2),
-        ),
+        scaffoldBackgroundColor: LuxuryColor.bg,
+        primaryColor: LuxuryColor.gold,
+        fontFamily: 'NotoSansTC',
       ),
       home: const CustomerFormPage(),
     );
   }
-}
-
-// --- 客戶資料模型 (維持原結構) ---
-class Customer {
-  String name, phone, bloodType, constellation, nextDate, nextItem, note;
-  List<String> historyLogs;
-
-  Customer({
-    required this.name,
-    this.phone = '', this.bloodType = '',
-    this.constellation = '', this.nextDate = '', this.nextItem = '',
-    this.note = '', List<String>? historyLogs,
-  }) : historyLogs = historyLogs ?? [];
-
-  Map<String, dynamic> toJson() => {
-    'name': name, 'phone': phone, 'bloodType': bloodType,
-    'constellation': constellation, 'nextDate': nextDate, 'nextItem': nextItem,
-    'note': note, 'historyLogs': historyLogs,
-    'updatedAt': FieldValue.serverTimestamp(),
-  };
-
-  factory Customer.fromFirestore(Map<String, dynamic> json) => Customer(
-    name: json['name'] ?? '',
-    phone: json['phone'] ?? '',
-    bloodType: json['bloodType'] ?? '',
-    constellation: json['constellation'] ?? '',
-    nextDate: json['nextDate'] ?? '',
-    nextItem: json['nextItem'] ?? '',
-    note: json['note'] ?? '',
-    historyLogs: List<String>.from(json['historyLogs'] ?? []),
-  );
 }
 
 class CustomerFormPage extends StatefulWidget {
@@ -87,21 +59,16 @@ class _CustomerFormPageState extends State<CustomerFormPage> with SingleTickerPr
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _noteController = TextEditingController();
-  final _currentServiceController = TextEditingController();
+  final _serviceController = TextEditingController();
   final _nextDateController = TextEditingController();
-  final _nextItemController = TextEditingController();
-
-  String? _selectedBlood;
-  String? _selectedZodiac;
-  final List<String> _bloodTypes = ['A', 'B', 'O', 'AB'];
-  final List<String> _zodiacs = ['牡羊座', '金牛座', '雙子座', '巨蟹座', '獅子座', '處女座', '天秤座', '天蠍座', '射手座', '摩羯座', '水瓶座', '雙魚座'];
 
   @override
   void initState() {
     super.initState();
+    // 4 秒週期的呼吸動畫
     _glowController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4), // 4秒一週期
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
   }
 
@@ -111,217 +78,102 @@ class _CustomerFormPageState extends State<CustomerFormPage> with SingleTickerPr
     super.dispose();
   }
 
-  void _openGoogleCalendar(Customer customer) async {
-    if (customer.nextDate.isEmpty) return;
-    final String title = Uri.encodeComponent('預約：${customer.name}');
-    final String desc = Uri.encodeComponent('項目：${customer.nextItem}\n備註：${customer.note}');
-    final String dateFormatted = customer.nextDate.replaceAll(RegExp(r'[- : ]'), '');
-    final String url = "https://www.google.com/calendar/render?action=TEMPLATE&text=$title&details=$desc&dates=${dateFormatted}00/${dateFormatted}00";
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
-  }
-
-  // --- 改為 Firebase 儲存 ---
-  Future<void> _saveData() async {
-    String name = _nameController.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('❌ 貴賓姓名為必填'), backgroundColor: Colors.red));
+  Future<void> _saveToFirebase() async {
+    if (_nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("請填寫貴賓姓名"), backgroundColor: Colors.red));
       return;
     }
 
-    String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    String serviceLog = _currentServiceController.text.trim();
-    String newLog = "$today: ${serviceLog.isEmpty ? '無紀錄' : serviceLog}";
-
+    String log = "${DateFormat('yyyy-MM-dd').format(DateTime.now())}: ${_serviceController.text}";
+    
     try {
-      final docRef = FirebaseFirestore.instance.collection('customers').doc(name);
-      
-      // 使用 Firebase 的 ArrayUnion 來追加紀錄
-      await docRef.set({
-        'name': name,
+      await FirebaseFirestore.instance.collection('customers').doc(_nameController.text).set({
+        'name': _nameController.text,
         'phone': _phoneController.text,
-        'bloodType': _selectedBlood ?? '',
-        'constellation': _selectedZodiac ?? '',
-        'nextDate': _nextDateController.text,
-        'nextItem': _nextItemController.text,
         'note': _noteController.text,
+        'nextDate': _nextDateController.text,
+        'historyLogs': FieldValue.arrayUnion([log]),
+        'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      await docRef.update({
-        'historyLogs': FieldValue.arrayUnion([newLog]),
-      });
-
-      if (_nextDateController.text.isNotEmpty) {
-        _openGoogleCalendar(Customer(name: name, nextDate: _nextDateController.text, nextItem: _nextItemController.text, note: _noteController.text));
-      }
-
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 資料已安全存儲至雲端")));
       _clear();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ 貴賓資料已同步至雲端'), backgroundColor: LuxuryTheme.mutedGold));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('儲存失敗: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("錯誤: $e")));
     }
   }
 
   void _clear() {
-    _nameController.clear(); _phoneController.clear(); _noteController.clear(); 
-    _currentServiceController.clear(); _nextDateController.clear(); _nextItemController.clear();
-    setState(() { _selectedBlood = null; _selectedZodiac = null; });
+    _nameController.clear(); _phoneController.clear(); _noteController.clear();
+    _serviceController.clear(); _nextDateController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('客戶管理系統'),
-        actions: [
-          TextButton.icon(
-            icon: const Icon(Icons.list, color: LuxuryTheme.brightGold),
-            label: const Text('名單總覽', style: TextStyle(color: LuxuryTheme.brightGold)),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerListPage())),
-          ),
-          const SizedBox(width: 10),
-        ],
+        title: const Text('HolyHair 客戶尊榮檔案', style: TextStyle(color: LuxuryColor.gold, letterSpacing: 2)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(25),
         child: Column(
           children: [
-            _buildField(_nameController, '貴賓姓名 *', Icons.person_outline),
-            _buildField(_phoneController, '連絡電話', Icons.phone_android_outlined, keyboardType: TextInputType.phone),
-            Row(children: [
-              Expanded(child: _buildDropdown('血型', _bloodTypes, _selectedBlood, (v) => setState(() => _selectedBlood = v))),
-              const SizedBox(width: 15),
-              Expanded(child: _buildDropdown('星座', _zodiacs, _selectedZodiac, (v) => setState(() => _selectedZodiac = v))),
-            ]),
-            const SizedBox(height: 15),
-            _buildField(_noteController, '特別備註 (膚質、喜好等)', Icons.auto_awesome_outlined, maxLines: 2),
-            _buildField(_currentServiceController, '本次服務紀錄內容', Icons.history_edu_outlined, maxLines: 2),
-            _buildAppointmentSection(),
-            const SizedBox(height: 40),
-            _buildLuxuryButton(),
+            _buildInput(_nameController, "貴賓尊姓大名", Icons.person_outline),
+            _buildInput(_phoneController, "聯繫電話", Icons.phone_iphone),
+            _buildInput(_noteController, "專屬備註 (膚質、髮況)", Icons.auto_awesome, maxLines: 2),
+            _buildInput(_serviceController, "本次服務紀實", Icons.history_edu, maxLines: 2),
+            const SizedBox(height: 30),
+            _buildBreathingButton(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLuxuryButton() {
+  Widget _buildInput(TextEditingController ctrl, String label, IconData icon, {int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: TextField(
+        controller: ctrl,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, color: LuxuryColor.darkGold),
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.grey),
+          enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.white10), borderRadius: BorderRadius.circular(12)),
+          focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: LuxuryColor.gold), borderRadius: BorderRadius.circular(12)),
+          filled: true,
+          fillColor: LuxuryColor.card,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreathingButton() {
     return AnimatedBuilder(
       animation: _glowController,
       builder: (context, child) {
-        final color = Color.lerp(LuxuryTheme.mutedGold, LuxuryTheme.brightGold, _glowController.value)!;
+        final color = Color.lerp(LuxuryColor.darkGold, LuxuryColor.gold, _glowController.value)!;
         return GestureDetector(
-          onTap: _saveData,
+          onTap: _saveToFirebase,
           child: Container(
             height: 60,
-            width: double.infinity,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: color, width: 2),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: color, width: 1.5),
               boxShadow: [
-                BoxShadow(color: color.withOpacity(0.3), blurRadius: 10 * _glowController.value, spreadRadius: 2 * _glowController.value),
+                BoxShadow(color: color.withOpacity(0.4), blurRadius: 15 * _glowController.value, spreadRadius: 2),
               ],
-              gradient: LinearGradient(colors: [LuxuryTheme.darkCard, color.withOpacity(0.1)]),
+              gradient: LinearGradient(colors: [LuxuryColor.card, color.withOpacity(0.2)]),
             ),
             child: Center(
-              child: Text('儲存並同步日曆', style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 2)),
+              child: Text("同步雲端資料庫", style: TextStyle(color: color, fontWeight: FontWeight.bold, letterSpacing: 3, fontSize: 18)),
             ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildAppointmentSection() {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(color: LuxuryTheme.darkCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.white10)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("📅 下次預約提醒", style: TextStyle(fontWeight: FontWeight.bold, color: LuxuryTheme.mutedGold)),
-          const SizedBox(height: 10),
-          _buildField(_nextItemController, '預約項目', Icons.spa_outlined),
-          TextField(
-            controller: _nextDateController, readOnly: true,
-            decoration: const InputDecoration(labelText: '日期與時間', suffixIcon: Icon(Icons.calendar_month, color: LuxuryTheme.mutedGold), border: OutlineInputBorder()),
-            onTap: () async {
-              DateTime? d = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2100));
-              if (d != null) {
-                TimeOfDay? t = await showTimePicker(context: context, initialTime: TimeOfDay.now());
-                if (t != null) {
-                  final full = DateTime(d.year, d.month, d.day, t.hour, t.minute);
-                  setState(() => _nextDateController.text = DateFormat('yyyy-MM-dd HH:mm').format(full));
-                }
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildField(TextEditingController c, String l, IconData icon, {int maxLines = 1, TextInputType keyboardType = TextInputType.text}) => 
-    Padding(padding: const EdgeInsets.only(bottom: 15), child: TextField(controller: c, maxLines: maxLines, keyboardType: keyboardType, decoration: InputDecoration(prefixIcon: Icon(icon, color: LuxuryTheme.mutedGold), labelText: l, labelStyle: const TextStyle(color: Colors.grey), border: const OutlineInputBorder())));
-
-  Widget _buildDropdown(String label, List<String> items, String? current, ValueChanged<String?> onChanged) =>
-    DropdownButtonFormField<String>(decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()), value: current, items: items.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: onChanged);
-}
-
-// --- 客戶列表頁面 (改為 StreamBuilder 實時讀取) ---
-class CustomerListPage extends StatelessWidget {
-  const CustomerListPage({super.key});
-
-  void _downloadBackup(List<Customer> list) {
-    if (list.isEmpty) return;
-    String content = "貴賓資料完整備份\n匯出時間: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}\n" + "="*40 + "\n";
-    for (var c in list) {
-      content += "\n【${c.name}】\n電話：${c.phone}\n歷史服務：\n${c.historyLogs.join('\n')}\n" + "-"*30 + "\n";
-    }
-    final bytes = utf8.encode(content);
-    final blob = web.Blob([bytes.toJS].toJS, web.BlobPropertyBag(type: 'text/plain'));
-    final url = web.URL.createObjectURL(blob);
-    final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
-    anchor.href = url;
-    anchor.download = "customer_backup.txt";
-    anchor.click();
-    web.URL.revokeObjectURL(url);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('名單總覽')),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('customers').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final list = snapshot.data!.docs.map((doc) => Customer.fromFirestore(doc.data() as Map<String, dynamic>)).toList();
-          
-          return Column(
-            children: [
-              IconButton(icon: const Icon(Icons.file_download, color: LuxuryTheme.brightGold), onPressed: () => _downloadBackup(list)),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: list.length,
-                  itemBuilder: (context, i) {
-                    final c = list[i];
-                    return Card(
-                      color: LuxuryTheme.darkCard,
-                      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                      child: ListTile(
-                        title: Text(c.name, style: const TextStyle(color: LuxuryTheme.brightGold, fontWeight: FontWeight.bold)),
-                        subtitle: Text("📞 ${c.phone}\n備註: ${c.note}"),
-                        isThreeLine: true,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }
