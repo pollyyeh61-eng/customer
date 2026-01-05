@@ -5,60 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HOLY HAIR VIP系統</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
+        /* 基礎設定 */
+        body { 
+            background-color: #000; 
+            color: #D4AF37; 
+            font-family: sans-serif; 
+            margin: 0; 
+            padding-bottom: 80px; 
+        }
+        
         .page { display: none; padding: 20px; }
         .active { display: block; }
-        h1 { color: #D4AF37; text-align: center; font-size: 28px; }
-
-        /* 針對老花眼優化：沒點擊時框線也要非常清楚 */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; color: #fff; font-size: 20px; font-weight: bold; margin-bottom: 8px; }
         
+        /* 標題金色 */
+        h1 { color: #D4AF37; text-align: center; font-size: 28px; letter-spacing: 3px; }
+
+        /* 表單區域 */
+        .form-group { margin-bottom: 22px; }
+        label { 
+            display: block; 
+            color: #D4AF37; /* 標籤改回金色 */
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 10px; 
+        }
+        
+        /* 輸入框：金色文字 + 金色呼吸邊框 */
         input, select, textarea {
             width: 100%;
-            padding: 15px;
-            background-color: #1a1a1a;
-            /* 使用亮灰色 2px 寬，確保不點擊也清晰 */
-            border: 2px solid #cccccc; 
-            border-radius: 12px;
-            color: #D4AF37;
+            padding: 16px;
+            background-color: #121212;
+            border: 2px solid #D4AF37; /* 常態下就是金色邊框 */
+            border-radius: 15px;
+            color: #D4AF37; /* 輸入的字也是金色 */
             font-size: 20px;
             box-sizing: border-box;
+            /* 呼吸燈動畫設定 */
+            animation: breathe 2.5s infinite ease-in-out;
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
         }
 
-        input:focus, select:focus, textarea:focus {
-            border-color: #D4AF37; /* 點擊時變亮金色 */
-            outline: none;
+        /* 呼吸動畫邏輯 */
+        @keyframes breathe {
+            0% { border-color: #8A6D3B; box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+            50% { border-color: #FFD700; box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+            100% { border-color: #8A6D3B; box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
         }
 
+        input:focus { outline: none; border-width: 3px; }
+
+        /* 儲存按鈕 */
         .btn-save {
             width: 100%;
             padding: 18px;
-            background: #D4AF37;
+            background: linear-gradient(145deg, #D4AF37, #8A6D3B);
             color: #000;
             border: none;
-            border-radius: 30px;
+            border-radius: 35px;
             font-size: 22px;
             font-weight: bold;
             margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
         }
 
-        /* 名單卡片：清楚的金色外框 */
+        /* 名單卡片 */
         .card {
-            background: #222;
+            background: #111;
             border: 2px solid #D4AF37;
-            padding: 15px;
+            padding: 18px;
             margin-bottom: 15px;
-            border-radius: 10px;
+            border-radius: 15px;
+            animation: breathe 3s infinite ease-in-out;
         }
-        .card h3 { margin: 0; color: #D4AF37; font-size: 24px; }
-        .card p { margin: 8px 0; font-size: 18px; color: #eee; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .card h3 { margin: 0; color: #FFD700; font-size: 24px; }
+        .card p { margin: 10px 0; font-size: 19px; color: #D4AF37; border-bottom: 1px solid #333; padding-bottom: 5px; }
 
         /* 底部選單 */
-        .nav { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; height: 75px; border-top: 1px solid #333; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; text-decoration: none; }
-        .nav-item.active-nav { color: #D4AF37; }
-        .nav-icon { font-size: 28px; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #000; display: flex; height: 80px; border-top: 2px solid #D4AF37; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8A6D3B; text-decoration: none; }
+        .nav-item.active-nav { color: #FFD700; font-weight: bold; }
+        .nav-icon { font-size: 30px; }
     </style>
 </head>
 <body>
@@ -85,11 +111,11 @@
         </div>
         <div class="form-group">
             <label>預約時間與項目</label>
-            <input type="text" id="booking" placeholder="例如：1/20 14:00 染髮">
+            <input type="text" id="booking" placeholder="1/20 14:00 剪髮">
         </div>
         <div class="form-group">
             <label>心得備註</label>
-            <textarea id="note" rows="3" placeholder="請在此輸入內容..."></textarea>
+            <textarea id="note" rows="3"></textarea>
         </div>
         <button class="btn-save" onclick="handleSave()">確認儲存資料</button>
     </div>
@@ -101,19 +127,18 @@
 
     <div class="nav">
         <div class="nav-item active-nav" id="nav1" onclick="showPage(1)">
-            <span class="nav-icon">💎</span><span style="font-size:14px;">資料登記</span>
+            <span class="nav-icon">💎</span><span style="font-size:16px;">資料登記</span>
         </div>
         <div class="nav-item" id="nav2" onclick="showPage(2)">
-            <span class="nav-icon">📜</span><span style="font-size:14px;">名單總覽</span>
+            <span class="nav-icon">📜</span><span style="font-size:16px;">名單總覽</span>
         </div>
     </div>
 
     <script>
-        // 核心儲存功能：確保存入手機空間
         function handleSave() {
             const name = document.getElementById('name').value;
             const phone = document.getElementById('phone').value;
-            if(!name || !phone) { alert('請填寫姓名與電話'); return; }
+            if(!name) { alert('請輸入姓名'); return; }
 
             const newCustomer = {
                 name: name,
@@ -122,50 +147,35 @@
                 constellation: document.getElementById('constellation').value,
                 booking: document.getElementById('booking').value,
                 note: document.getElementById('note').value,
-                date: new Date().toLocaleString()
+                date: new Date().toLocaleDateString()
             };
 
-            // 讀取舊資料 -> 加入新資料 -> 存回 localStorage
-            let list = JSON.parse(localStorage.getItem('holyHairData') || '[]');
+            let list = JSON.parse(localStorage.getItem('holyData') || '[]');
             list.push(newCustomer);
-            localStorage.setItem('holyHairData', JSON.stringify(list));
+            localStorage.setItem('holyData', JSON.stringify(list));
 
-            alert('儲存成功！可至名單總覽查看。');
-            
-            // 清空表單
-            document.getElementById('name').value = '';
-            document.getElementById('phone').value = '';
-            document.getElementById('booking').value = '';
-            document.getElementById('note').value = '';
+            alert('儲存成功！');
+            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
         }
 
-        // 分頁切換功能
         function showPage(num) {
             document.getElementById('page1').style.display = (num === 1) ? 'block' : 'none';
             document.getElementById('page2').style.display = (num === 2) ? 'block' : 'none';
-            
             document.getElementById('nav1').classList.toggle('active-nav', num === 1);
             document.getElementById('nav2').classList.toggle('active-nav', num === 2);
-
-            if(num === 2) {
-                renderList(); // 切換到第二頁時重新讀取資料
-            }
+            if(num === 2) renderList();
         }
 
-        // 讀取並顯示名單
         function renderList() {
             const container = document.getElementById('list-container');
-            const list = JSON.parse(localStorage.getItem('holyHairData') || '[]');
-            
+            const list = JSON.parse(localStorage.getItem('holyData') || '[]');
             if(list.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888; font-size:20px; margin-top:50px;">目前尚無資料記錄</p>';
+                container.innerHTML = '<p style="text-align:center; color:#D4AF37; font-size:20px;">尚無記錄</p>';
                 return;
             }
-
-            // 將最新儲存的排在最上面
             container.innerHTML = list.reverse().map(c => `
                 <div class="card">
-                    <h3>${c.name} <span style="font-size:14px; color:#888;">${c.date}</span></h3>
+                    <h3>${c.name} <span style="font-size:14px; color:#8A6D3B;">${c.date}</span></h3>
                     <p>📞 電話：${c.phone}</p>
                     <p>✨ ${c.blood} / ${c.constellation}</p>
                     <p>📅 預約：${c.booking}</p>
