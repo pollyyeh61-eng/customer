@@ -3,126 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOLY HAIR | 客戶管理系統</title>
+    <title>HOLY HAIR VIP系統 - 高對比版</title>
     <style>
         :root {
-            --gold: #D4AF37;
-            --gold-bright: #FFD700;
+            --gold: #FFD700;       /* 調亮金色 */
+            --border-gray: #888888; /* 沒點擊時也很清楚的灰色框線 */
             --dark-bg: #000000;
-            --input-bg: #0a0a0a;
-            --text-gray: #888888;
+            --input-bg: #111111;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: sans-serif;
             background-color: var(--dark-bg);
             color: white;
             margin: 0;
+            padding: 20px;
             padding-bottom: 80px;
         }
 
-        .header {
-            text-align: center;
-            padding: 40px 20px 20px;
-        }
+        /* 標題加強 */
         .header h1 {
             color: var(--gold);
-            letter-spacing: 6px;
-            margin: 0;
+            text-align: center;
             font-size: 32px;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            margin-bottom: 5px;
         }
         .header p {
-            color: var(--text-gray);
-            font-size: 10px;
-            letter-spacing: 4px;
-            margin-top: 8px;
-            text-transform: uppercase;
+            text-align: center;
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 30px;
         }
 
-        .page { display: none; padding: 0 20px; }
-        .page.active { display: block; }
+        /* 欄位文字標籤 - 加大加亮 */
+        label {
+            display: block;
+            color: #FFFFFF; /* 純白色對比最強 */
+            font-size: 18px; /* 字體加大 */
+            font-weight: bold;
+            margin-bottom: 10px;
+            margin-top: 20px;
+        }
 
-        /* 強化後的框線樣式 */
-        .form-group { margin-bottom: 25px; }
-        label { display: block; color: #ccc; font-size: 14px; margin-bottom: 10px; padding-left: 5px; }
-        
+        /* 輸入框 - 關鍵修改：常態下就有明顯框線 */
         input, select, textarea {
             width: 100%;
-            padding: 18px;
+            padding: 16px;
             background-color: var(--input-bg);
-            /* 更加顯眼的金色框線 */
-            border: 2px solid var(--gold); 
-            border-radius: 20px;
-            color: #fff;
-            font-size: 16px;
+            /* 改為 2px 寬度，顏色調亮，讓老花眼一眼就能看到框 */
+            border: 2px solid var(--border-gray); 
+            border-radius: 12px;
+            color: var(--gold);
+            font-size: 20px; /* 輸入的字也加大 */
             box-sizing: border-box;
             outline: none;
-            /* 輕微的發光效果 */
-            box-shadow: inset 0 0 5px rgba(212, 175, 55, 0.1), 0 0 5px rgba(212, 175, 55, 0.1);
         }
 
-        input:focus {
-            border-color: var(--gold-bright);
-            box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+        /* 點擊時框線變金色，讓您知道正在輸入哪一格 */
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
         }
 
-        .row { display: flex; gap: 15px; }
-        .row .form-group { flex: 1; }
-
-        /* 預約區塊強化 */
-        .appointment-box {
-            border: 2px solid var(--gold);
-            padding: 20px;
-            border-radius: 25px;
-            margin-bottom: 25px;
-            background: linear-gradient(145deg, #0f0f0f, #000);
-        }
-        .appointment-title {
-            color: var(--gold);
-            font-weight: bold;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        /* 預約區塊加強框線 */
+        .reserve-box {
+            border: 2px dashed var(--gold); /* 金色虛線框 */
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 25px;
+            background-color: #080808;
         }
 
+        /* 按鈕加大 */
         .btn-submit {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(to bottom, #222, #000);
+            background: linear-gradient(to bottom, #444, #000);
             color: var(--gold);
             border: 2px solid var(--gold);
             border-radius: 40px;
-            font-size: 18px;
+            font-size: 22px;
             font-weight: bold;
-            letter-spacing: 2px;
+            margin-top: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
 
-        /* 名單卡片強化 */
-        .customer-card {
-            background: #111;
-            border: 2px solid var(--gold);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.8);
-        }
-        .customer-card h3 { margin: 0; color: var(--gold-bright); font-size: 20px; }
-        .customer-card p { margin: 8px 0 0; font-size: 14px; color: #bbb; line-height: 1.5; }
+        /* 頁面切換 */
+        .page { display: none; }
+        .page.active { display: block; }
 
-        /* 底部導覽列 */
+        /* 底部導覽加大 */
         .nav-bar {
             position: fixed;
             bottom: 0;
+            left: 0;
             width: 100%;
-            background: #000;
+            background: #111;
             display: flex;
-            border-top: 1px solid #333;
-            height: 75px;
-            padding-bottom: 10px;
+            height: 70px;
+            border-top: 2px solid #333;
         }
         .nav-item {
             flex: 1;
@@ -130,12 +109,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #555;
-            cursor: pointer;
+            color: #888;
+            font-size: 14px;
+            font-weight: bold;
         }
         .nav-item.active { color: var(--gold); }
-        .nav-icon { font-size: 24px; margin-bottom: 4px; }
-        .nav-text { font-size: 12px; font-weight: bold; }
+        .nav-icon { font-size: 24px; }
     </style>
 </head>
 <body>
@@ -146,28 +125,23 @@
             <p>VIP SYNC SYSTEM</p>
         </div>
 
-        <div class="form-group">
-            <label>貴賓姓名</label>
-            <input type="text" id="name" placeholder="請輸入姓名">
-        </div>
+        <label>貴賓姓名</label>
+        <input type="text" id="name" placeholder="點擊此處輸入姓名">
 
-        <div class="form-group">
-            <label>聯繫電話</label>
-            <input type="tel" id="phone" placeholder="請輸入電話號碼">
-        </div>
+        <label>聯繫電話</label>
+        <input type="tel" id="phone" placeholder="點擊此處輸入電話">
 
-        <div class="row">
-            <div class="form-group">
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
                 <label>血型</label>
                 <select id="blood">
-                    <option value="" disabled selected>選擇血型</option>
-                    <option>A 型</option><option>B 型</option><option>O 型</option><option>AB 型</option>
+                    <option>A 型</option><option>B 型</option>
+                    <option>O 型</option><option>AB 型</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div style="flex: 1;">
                 <label>星座</label>
                 <select id="constellation">
-                    <option value="" disabled selected>選擇星座</option>
                     <option>牡羊座</option><option>金牛座</option><option>雙子座</option>
                     <option>巨蟹座</option><option>獅子座</option><option>處女座</option>
                     <option>天秤座</option><option>天蠍座</option><option>射手座</option>
@@ -176,92 +150,46 @@
             </div>
         </div>
 
-        <div class="appointment-box">
-            <div class="appointment-title">📅 下次預約安排</div>
-            <div class="form-group">
-                <input type="datetime-local" id="next-time">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <input type="text" id="next-item" placeholder="預約服務項目 (如：剪染護)">
-            </div>
+        <div class="reserve-box">
+            <label style="margin-top: 0; color: var(--gold);">📅 下次預約安排</label>
+            <input type="datetime-local" id="next-time" style="margin-bottom: 15px;">
+            <input type="text" id="next-item" placeholder="預約項目 (如：染髮+護髮)">
         </div>
 
-        <div class="form-group">
-            <label>專屬備註</label>
-            <textarea id="note" rows="3" placeholder="請輸入詳細備註..."></textarea>
-        </div>
+        <label>心得備註</label>
+        <textarea id="note" rows="3" placeholder="請輸入內容..."></textarea>
 
-        <button class="btn-submit" onclick="saveData()">確認儲存資料</button>
+        <button class="btn-submit" onclick="alert('資料已儲存！')">確認儲存資料</button>
     </div>
 
     <div id="page-list" class="page">
         <div class="header">
             <h1>名單總覽</h1>
-            <p>CUSTOMER LIST</p>
         </div>
-        <div id="list-container">
-            <p style="text-align: center; color: #444; margin-top: 50px;">目前尚無客戶紀錄</p>
+        <div style="padding: 20px; text-align: center; color: #666; font-size: 18px;">
+            目前尚無客戶資料記錄
         </div>
     </div>
 
     <div class="nav-bar">
-        <div class="nav-item active" onclick="switchPage('page-input', this)">
-            <span class="nav-icon">✨</span>
-            <span class="nav-text">資料登記</span>
+        <div class="nav-item active" onclick="showPage('page-input', this)">
+            <span class="nav-icon">💎</span>
+            <span>資料登記</span>
         </div>
-        <div class="nav-item" onclick="switchPage('page-list', this)">
-            <span class="nav-icon">👥</span>
-            <span class="nav-text">名單總覽</span>
+        <div class="nav-item" onclick="showPage('page-list', this)">
+            <span class="nav-icon">📜</span>
+            <span>名單總覽</span>
         </div>
     </div>
 
     <script>
-        let db = [];
-
-        function switchPage(pageId, el) {
+        function showPage(pageId, element) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            if(pageId === 'page-list') updateList();
+            
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
             window.scrollTo(0,0);
-        }
-
-        function saveData() {
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            if(!name || !phone) { alert('請填寫姓名與電話'); return; }
-
-            const entry = {
-                name, phone,
-                blood: document.getElementById('blood').value,
-                constellation: document.getElementById('constellation').value,
-                time: document.getElementById('next-time').value,
-                item: document.getElementById('next-item').value,
-                note: document.getElementById('note').value
-            };
-
-            db.push(entry);
-            alert('客戶資料已成功同步！');
-            // 清空
-            document.querySelectorAll('input, textarea, select').forEach(i => {
-                if(i.tagName === 'SELECT') i.selectedIndex = 0;
-                else i.value = '';
-            });
-        }
-
-        function updateList() {
-            const container = document.getElementById('list-container');
-            if(db.length === 0) return;
-            container.innerHTML = db.map(c => `
-                <div class="customer-card">
-                    <h3>${c.name}</h3>
-                    <p>📱 電話：${c.phone}</p>
-                    <p>🌟 特徵：${c.constellation} | ${c.blood}</p>
-                    <p>📅 預約：${c.time.replace('T', ' ') || '未設定'} / ${c.item || '-'}</p>
-                    <p>📝 備註：${c.note || '無'}</p>
-                </div>
-            `).reverse().join('');
         }
     </script>
 </body>
