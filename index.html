@@ -2,97 +2,130 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOLY HAIR 客戶管理系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HOLY HAIR | 頂級客戶管理</title>
     <style>
         :root {
             --gold: #D4AF37;
-            --dark-bg: #000000;
-            --input-bg: #1A1A1A;
-            --text-gray: #AAAAAA;
+            --gold-light: #F9E498;
+            --dark-bg: #0a0a0a;
+            --card-bg: #161616;
+            --input-focus: #252525;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
             background-color: var(--dark-bg);
-            color: white;
+            color: #fff;
             margin: 0;
-            padding-bottom: 70px; /* 為底部選單留空間 */
+            padding-bottom: 80px;
+            overflow-x: hidden;
         }
 
-        /* 標題區 */
+        /* 標題動畫 */
         .header {
             text-align: center;
-            padding: 30px 20px;
+            padding: 40px 20px 20px;
+            background: linear-gradient(to bottom, #1a1a1a, var(--dark-bg));
         }
         .header h1 {
             color: var(--gold);
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             margin: 0;
-            font-size: 28px;
-        }
-        .header p {
-            color: var(--text-gray);
-            font-size: 12px;
-            margin-top: 5px;
+            font-size: 32px;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
         }
 
-        /* 頁面切換控制 */
-        .page { display: none; padding: 0 20px; }
+        /* 頁面切換 */
+        .page { display: none; animation: fadeIn 0.4s ease-out; padding: 0 25px; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 表單樣式 */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; color: var(--text-gray); font-size: 14px; margin-bottom: 8px; }
+        /* 輸入框精緻化 */
+        .form-group { margin-bottom: 22px; }
+        label { display: block; color: #888; font-size: 13px; margin-bottom: 8px; letter-spacing: 1px; }
         
         input, select, textarea {
             width: 100%;
-            padding: 15px;
-            background-color: var(--input-bg);
+            padding: 16px;
+            background-color: var(--card-bg);
             border: 1px solid #333;
-            border-radius: 12px;
-            color: var(--gold);
+            border-radius: 14px;
+            color: var(--gold-light);
             font-size: 16px;
+            transition: all 0.3s ease;
             box-sizing: border-box;
         }
 
-        .row { display: flex; gap: 10px; }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
+            background-color: var(--input-focus);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+
+        .row { display: flex; gap: 12px; }
         .row .form-group { flex: 1; }
 
-        /* 按鈕 */
+        /* 儲存按鈕效果 */
         .btn-submit {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(145deg, #444, #111);
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            border-radius: 30px;
+            padding: 18px;
+            background: linear-gradient(135deg, #d4af37 0%, #aa8a2e 100%);
+            color: #000;
+            border: none;
+            border-radius: 16px;
             font-size: 18px;
-            font-weight: bold;
+            font-weight: 800;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
+            transition: transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+        }
+        .btn-submit:active { transform: scale(0.97); background: var(--gold-light); }
+
+        /* 搜尋框樣式 */
+        .search-container {
+            position: sticky;
+            top: 0;
+            background: var(--dark-bg);
+            padding: 15px 0;
+            z-index: 10;
+        }
+        .search-input {
+            border-radius: 30px;
+            padding-left: 45px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>');
+            background-repeat: no-repeat;
+            background-position: 15px center;
         }
 
-        /* 名單頁樣式 */
+        /* 名單卡片精緻化 */
         .customer-card {
-            background: #1a1a1a;
-            border-left: 4px solid var(--gold);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 8px;
+            background: var(--card-bg);
+            border: 1px solid #222;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 18px;
+            position: relative;
+            transition: border 0.3s;
         }
-        .customer-card h3 { margin: 0; color: var(--gold); }
-        .customer-card p { margin: 5px 0 0; font-size: 13px; color: #ccc; }
+        .customer-card:active { border-color: var(--gold); }
+        .card-name { font-size: 20px; color: var(--gold); font-weight: bold; margin-bottom: 5px; }
+        .card-info { font-size: 14px; color: #aaa; margin: 4px 0; display: flex; align-items: center; gap: 8px; }
+        .tag { background: #333; color: #eee; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
 
         /* 底部導覽列 */
         .nav-bar {
             position: fixed;
             bottom: 0;
             width: 100%;
-            background: #111;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
             display: flex;
-            border-top: 1px solid #333;
-            height: 60px;
+            border-top: 1px solid #222;
+            height: 75px;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .nav-item {
             flex: 1;
@@ -100,12 +133,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: var(--text-gray);
-            cursor: pointer;
-            font-size: 12px;
+            color: #555;
+            transition: all 0.3s;
         }
-        .nav-item.active { color: var(--gold); }
-        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-item.active { color: var(--gold); transform: translateY(-3px); }
+        .nav-icon { font-size: 24px; }
+        .nav-text { font-size: 11px; margin-top: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -113,7 +146,7 @@
     <div id="page-input" class="page active">
         <div class="header">
             <h1>HOLY HAIR</h1>
-            <p>至臻貴賓資料同步系統</p>
+            <p style="color:#666; font-size: 11px; letter-spacing: 2px;">V I P  S Y N C  S Y S T E M</p>
         </div>
 
         <div class="form-group">
@@ -123,22 +156,21 @@
 
         <div class="form-group">
             <label>聯繫電話</label>
-            <input type="tel" id="phone" placeholder="請輸入電話">
+            <input type="tel" id="phone" placeholder="請輸入電話號碼">
         </div>
 
         <div class="row">
             <div class="form-group">
                 <label>血型</label>
                 <select id="blood">
-                    <option>A 型</option>
-                    <option>B 型</option>
-                    <option>O 型</option>
-                    <option>AB 型</option>
+                    <option value="">選擇血型</option>
+                    <option>A 型</option><option>B 型</option><option>O 型</option><option>AB 型</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>星座</label>
                 <select id="constellation">
+                    <option value="">選擇星座</option>
                     <option>牡羊座</option><option>金牛座</option><option>雙子座</option>
                     <option>巨蟹座</option><option>獅子座</option><option>處女座</option>
                     <option>天秤座</option><option>天蠍座</option><option>射手座</option>
@@ -147,64 +179,73 @@
             </div>
         </div>
 
-        <div style="border: 1px solid #333; padding: 15px; border-radius: 15px; margin-bottom: 20px;">
-            <label style="color: var(--gold);">📅 下次預約設定</label>
+        <div style="background: #111; padding: 20px; border-radius: 20px; border: 1px dashed #333; margin-bottom: 25px;">
+            <label style="color: var(--gold); font-weight: bold; margin-bottom: 15px;">📅 下次預約安排</label>
             <div class="form-group">
                 <input type="datetime-local" id="next-time">
             </div>
-            <div class="form-group">
-                <input type="text" id="next-item" placeholder="預約項目 (如：剪染護)">
-            </div>
+            <input type="text" id="next-item" placeholder="預約服務項目 (如：燙髮、染髮)">
         </div>
 
         <div class="form-group">
             <label>專屬備註</label>
-            <textarea id="note" rows="3" placeholder="請輸入備註..."></textarea>
+            <textarea id="note" rows="3" placeholder="記錄客人的特殊需求或喜好..."></textarea>
         </div>
 
-        <button class="btn-submit" onclick="saveData()">確認儲存資料</button>
+        <button class="btn-submit" onclick="saveData()">儲存貴賓資料</button>
     </div>
 
     <div id="page-list" class="page">
-        <div class="header">
-            <h1>名單總覽</h1>
-            <p>即時客戶名單管理</p>
+        <div class="header" style="padding-bottom: 10px;">
+            <h1 style="font-size: 24px;">名單總覽</h1>
         </div>
+
+        <div class="search-container">
+            <input type="text" id="searchBar" class="search-input" placeholder="搜尋姓名或電話..." oninput="filterList()">
+        </div>
+
         <div id="customer-list-container">
-            <p style="text-align: center; color: #666;">尚無客戶資料</p>
-        </div>
+            </div>
     </div>
 
     <div class="nav-bar">
         <div class="nav-item active" onclick="switchPage('page-input', this)">
-            <span class="nav-icon">📝</span>
-            <span>資料登記</span>
+            <span class="nav-icon">✨</span>
+            <span class="nav-text">資料登記</span>
         </div>
         <div class="nav-item" onclick="switchPage('page-list', this)">
-            <span class="nav-icon">📋</span>
-            <span>名單總覽</span>
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">名單總覽</span>
         </div>
     </div>
 
     <script>
-        let customers = [];
+        // 初始化：從手機本地空間讀取資料
+        let customers = JSON.parse(localStorage.getItem('holyHairData')) || [];
 
         function switchPage(pageId, element) {
-            // 切換分頁顯示
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-
-            // 切換選單顏色
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             element.classList.add('active');
             
-            if(pageId === 'page-list') renderList();
+            if(pageId === 'page-list') renderList(customers);
+            window.scrollTo(0,0);
         }
 
         function saveData() {
-            const data = {
-                name: document.getElementById('name').value,
-                phone: document.getElementById('phone').value,
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+
+            if(!name || !phone) {
+                alert('姓名與電話為必填項目');
+                return;
+            }
+
+            const newCustomer = {
+                id: Date.now(),
+                name: name,
+                phone: phone,
                 blood: document.getElementById('blood').value,
                 constellation: document.getElementById('constellation').value,
                 nextTime: document.getElementById('next-time').value,
@@ -212,27 +253,48 @@
                 note: document.getElementById('note').value
             };
 
-            if(!data.name) { alert('請輸入姓名'); return; }
-
-            customers.push(data);
-            alert('儲存成功！');
+            customers.unshift(newCustomer); // 新資料放在最前面
+            localStorage.setItem('holyHairData', JSON.stringify(customers)); // 儲存至本地
             
-            // 清空表單
-            document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+            alert('✨ 貴賓資料已成功同步儲存');
+            
+            // 清空輸入
+            document.querySelectorAll('input, textarea, select').forEach(el => el.value = '');
         }
 
-        function renderList() {
+        function renderList(dataArray) {
             const container = document.getElementById('customer-list-container');
-            if(customers.length === 0) return;
+            if(dataArray.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#555; margin-top:50px;">目前沒有相符的名單</p>';
+                return;
+            }
 
-            container.innerHTML = customers.map(c => `
+            container.innerHTML = dataArray.map(c => `
                 <div class="customer-card">
-                    <h3>${c.name} (${c.phone})</h3>
-                    <p>✨ ${c.constellation} | ${c.blood}</p>
-                    <p>📅 下次預約：${c.nextTime || '未設定'} - ${c.nextItem || ''}</p>
-                    <p>📝 備註：${c.note}</p>
+                    <div class="card-name">${c.name}</div>
+                    <div class="card-info">📱 ${c.phone}</div>
+                    <div class="card-info">
+                        <span class="tag">${c.constellation || '未知星座'}</span>
+                        <span class="tag">${c.blood || '未知血型'}</span>
+                    </div>
+                    <div class="card-info" style="margin-top:10px; color: var(--gold-light);">
+                        📅 預約: ${c.nextTime ? c.nextTime.replace('T', ' ') : '尚未安排'}
+                    </div>
+                    <div class="card-info">🏷️ 項目: ${c.nextItem || '無'}</div>
+                    <div style="font-size:12px; color:#666; margin-top:8px; border-top:1px solid #222; padding-top:8px;">
+                        備註: ${c.note || '無特殊紀錄'}
+                    </div>
                 </div>
             `).join('');
+        }
+
+        function filterList() {
+            const keyword = document.getElementById('searchBar').value.toLowerCase();
+            const filtered = customers.filter(c => 
+                c.name.toLowerCase().includes(keyword) || 
+                c.phone.includes(keyword)
+            );
+            renderList(filtered);
         }
     </script>
 </body>
