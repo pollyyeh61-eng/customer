@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOLY HAIR VIP系統 - 高對比版</title>
+    <title>HOLY HAIR VIP系統 - 動態發光版</title>
     <style>
         :root {
-            --gold: #FFD700;       /* 調亮金色 */
-            --border-gray: #888888; /* 沒點擊時也很清楚的灰色框線 */
+            --gold: #FFD700;       /* 亮金色 */
+            --bright-gold: #FFF5AD; /* 呼吸發光最亮色 */
+            --border-gray: #777777; /* 常態下的框線顏色 */
             --dark-bg: #000000;
-            --input-bg: #111111;
         }
 
         body {
@@ -18,90 +18,88 @@
             color: white;
             margin: 0;
             padding: 20px;
-            padding-bottom: 80px;
+            /* 增加底部緩衝，防止按鈕被壓到 */
+            padding-bottom: 120px; 
         }
 
-        /* 標題加強 */
-        .header h1 {
-            color: var(--gold);
-            text-align: center;
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
-        .header p {
-            text-align: center;
-            color: #ccc;
-            font-size: 14px;
-            margin-bottom: 30px;
+        /* 呼吸動畫定義 */
+        @keyframes breath {
+            0% { box-shadow: 0 0 5px var(--gold); border-color: var(--gold); }
+            50% { box-shadow: 0 0 20px var(--bright-gold); border-color: var(--bright-gold); }
+            100% { box-shadow: 0 0 5px var(--gold); border-color: var(--gold); }
         }
 
-        /* 欄位文字標籤 - 加大加亮 */
+        .header h1 { color: var(--gold); text-align: center; font-size: 32px; margin: 10px 0; }
+        .header p { text-align: center; color: #ccc; font-size: 14px; margin-bottom: 20px; }
+
         label {
             display: block;
-            color: #FFFFFF; /* 純白色對比最強 */
-            font-size: 18px; /* 字體加大 */
+            color: #FFFFFF;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 10px;
-            margin-top: 20px;
+            margin-bottom: 8px;
+            margin-top: 15px;
         }
 
-        /* 輸入框 - 關鍵修改：常態下就有明顯框線 */
+        /* 輸入框常態：清楚的框線 */
         input, select, textarea {
             width: 100%;
             padding: 16px;
-            background-color: var(--input-bg);
-            /* 改為 2px 寬度，顏色調亮，讓老花眼一眼就能看到框 */
-            border: 2px solid var(--border-gray); 
-            border-radius: 12px;
+            background-color: #111;
+            border: 2.5px solid var(--border-gray); 
+            border-radius: 15px;
             color: var(--gold);
-            font-size: 20px; /* 輸入的字也加大 */
+            font-size: 20px;
             box-sizing: border-box;
             outline: none;
+            transition: all 0.3s ease;
         }
 
-        /* 點擊時框線變金色，讓您知道正在輸入哪一格 */
+        /* 點擊時觸發呼吸發光效果 */
         input:focus, select:focus, textarea:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+            animation: breath 2s infinite ease-in-out;
+            background-color: #000;
         }
 
-        /* 預約區塊加強框線 */
         .reserve-box {
-            border: 2px dashed var(--gold); /* 金色虛線框 */
+            border: 2px dashed var(--gold);
             padding: 15px;
             border-radius: 15px;
             margin-top: 25px;
-            background-color: #080808;
+            background-color: #0a0a0a;
         }
 
-        /* 按鈕加大 */
+        /* 修改：確認儲存按鈕 - 改色並往上提 */
         .btn-submit {
             width: 100%;
             padding: 18px;
-            background: linear-gradient(to bottom, #444, #000);
-            color: var(--gold);
-            border: 2px solid var(--gold);
+            /* 改為顯眼的亮金色背景 */
+            background: linear-gradient(135deg, #FFD700, #B8860B);
+            color: black; /* 黑字更清楚 */
+            border: none;
             border-radius: 40px;
             font-size: 22px;
             font-weight: bold;
-            margin-top: 30px;
+            margin-top: 40px; /* 增加上方距離，往上提 */
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
 
-        /* 頁面切換 */
+        /* 頁面切換控制 */
         .page { display: none; }
         .page.active { display: block; }
 
-        /* 底部導覽加大 */
+        /* 底部導覽列 */
         .nav-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: #111;
+            background: rgba(15, 15, 15, 0.95);
             display: flex;
-            height: 70px;
+            height: 75px;
             border-top: 2px solid #333;
+            z-index: 100;
         }
         .nav-item {
             flex: 1;
@@ -109,12 +107,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #888;
+            color: #777;
             font-size: 14px;
-            font-weight: bold;
         }
         .nav-item.active { color: var(--gold); }
-        .nav-icon { font-size: 24px; }
+        .nav-icon { font-size: 26px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -126,48 +123,44 @@
         </div>
 
         <label>貴賓姓名</label>
-        <input type="text" id="name" placeholder="點擊此處輸入姓名">
+        <input type="text" id="name" placeholder="請輸入姓名">
 
         <label>聯繫電話</label>
-        <input type="tel" id="phone" placeholder="點擊此處輸入電話">
+        <input type="tel" id="phone" placeholder="請輸入電話">
 
-        <div style="display: flex; gap: 15px;">
+        <div style="display: flex; gap: 10px;">
             <div style="flex: 1;">
                 <label>血型</label>
                 <select id="blood">
-                    <option>A 型</option><option>B 型</option>
-                    <option>O 型</option><option>AB 型</option>
+                    <option>A 型</option><option>B 型</option><option>O 型</option><option>AB 型</option>
                 </select>
             </div>
             <div style="flex: 1;">
                 <label>星座</label>
                 <select id="constellation">
-                    <option>牡羊座</option><option>金牛座</option><option>雙子座</option>
-                    <option>巨蟹座</option><option>獅子座</option><option>處女座</option>
-                    <option>天秤座</option><option>天蠍座</option><option>射手座</option>
-                    <option>摩羯座</option><option>水瓶座</option><option>雙魚座</option>
+                    <option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option>
+                    <option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option>
+                    <option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>雙魚座</option>
                 </select>
             </div>
         </div>
 
         <div class="reserve-box">
             <label style="margin-top: 0; color: var(--gold);">📅 下次預約安排</label>
-            <input type="datetime-local" id="next-time" style="margin-bottom: 15px;">
-            <input type="text" id="next-item" placeholder="預約項目 (如：染髮+護髮)">
+            <input type="datetime-local" id="next-time" style="margin-bottom: 10px;">
+            <input type="text" id="next-item" placeholder="預約項目 (如：染髮)">
         </div>
 
         <label>心得備註</label>
-        <textarea id="note" rows="3" placeholder="請輸入內容..."></textarea>
+        <textarea id="note" rows="3" placeholder="在此輸入內容..."></textarea>
 
-        <button class="btn-submit" onclick="alert('資料已儲存！')">確認儲存資料</button>
+        <button class="btn-submit" onclick="alert('客戶資料已成功同步！')">確認儲存資料</button>
     </div>
 
     <div id="page-list" class="page">
-        <div class="header">
-            <h1>名單總覽</h1>
-        </div>
-        <div style="padding: 20px; text-align: center; color: #666; font-size: 18px;">
-            目前尚無客戶資料記錄
+        <div class="header"><h1>名單總覽</h1></div>
+        <div style="text-align: center; color: #888; margin-top: 50px; font-size: 20px;">
+            目前尚無資料記錄
         </div>
     </div>
 
@@ -186,10 +179,9 @@
         function showPage(pageId, element) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             element.classList.add('active');
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
     </script>
 </body>
