@@ -1,1 +1,185 @@
-flutter build web --release
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+import 'package:web/web.dart' as web;
+import 'dart:js_interop';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyCOhBN9TH3UJSOSx5XVyQ08f_2RUckvXYU",
+      appId: "1:960169055224:web:96d6d47280c5d543bf3c0d",
+      messagingSenderId: "960169055224",
+      projectId: "holyhairsalon-f73bf",
+      authDomain: "holyhairsalon-f73bf.firebaseapp.com",
+      storageBucket: "holyhairsalon-f73bf.firebasestorage.app",
+    ),
+  );
+  runApp(const LuxuryCustomerApp());
+}
+
+class LuxuryColor {
+  static const Color gold = Color(0xFFD4AF37);
+  static const Color darkGold = Color(0xFF8E6D2F);
+  static const Color bg = Color(0xFF0A0A0A);
+  static const Color card = Color(0xFF161616);
+}
+
+class LuxuryCustomerApp extends StatelessWidget {
+  const LuxuryCustomerApp({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(brightness: Brightness.dark, scaffoldBackgroundColor: LuxuryColor.bg),
+      home: const MainTabScreen(),
+    );
+  }
+}
+
+class MainTabScreen extends StatefulWidget {
+  const MainTabScreen({super.key});
+  @override
+  State<MainTabScreen> createState() => _MainTabScreenState();
+}
+
+class _MainTabScreenState extends State<MainTabScreen> {
+  int _currentIndex = 0;
+  final List<Widget> _pages = [const CustomerFormPage(), const CustomerListPage()];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: LuxuryColor.bg,
+        selectedItemColor: LuxuryColor.gold,
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.person_add), label: '新增'),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: '名單'),
+        ],
+      ),
+    );
+  }
+}
+
+// --- 客戶新增頁面 (含4秒呼吸按鈕) ---
+class CustomerFormPage extends StatefulWidget {
+  const CustomerFormPage({super.key});
+  @override
+  State<CustomerFormPage> createState() => _CustomerFormPageState();
+}
+
+class _CustomerFormPageState extends State<CustomerFormPage> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _noteCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('HolyHair 尊榮檔案', style: TextStyle(color: LuxuryColor.gold))),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(25),
+        child: Column(
+          children: [
+            _buildInput(_nameCtrl, "貴賓姓名", Icons.person_outline),
+            _buildInput(_phoneCtrl, "連絡電話", Icons.phone_iphone),
+            _buildInput(_noteCtrl, "備註項目", Icons.auto_awesome, maxLines: 3),
+            const SizedBox(height: 40),
+            AnimatedBuilder(
+              animation: _ctrl,
+              builder: (context, child) {
+                final color = Color.lerp(LuxuryColor.darkGold, LuxuryColor.gold, _ctrl.value)!;
+                return GestureDetector(
+                  onTap: () async {
+                    if (_nameCtrl.text.isEmpty) return;
+                    await FirebaseFirestore.instance.collection('customers').doc(_nameCtrl.text).set({
+                      'name': _nameCtrl.text, 'phone': _phoneCtrl.text, 'note': _noteCtrl.text,
+                      'lastUpdated': FieldValue.serverTimestamp(),
+                    }, SetOptions(merge: true));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ 已同步雲端")));
+                  },
+                  child: Container(
+                    height: 60, width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: color, width: 2),
+                      boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 15 * _ctrl.value)],
+                      gradient: LinearGradient(colors: [LuxuryColor.card, color.withOpacity(0.2)]),
+                    ),
+                    child: Center(child: Text("確認儲存資料", style: TextStyle(color: color, fontWeight: FontWeight.bold, letterSpacing: 2))),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInput(TextEditingController c, String l, IconData i, {int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: TextField(
+        controller: c, maxLines: maxLines,
+        decoration: InputDecoration(
+          prefixIcon: Icon(i, color: LuxuryColor.darkGold), labelText: l,
+          filled: true, fillColor: LuxuryColor.card,
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
+        ),
+      ),
+    );
+  }
+}
+
+// --- 名單總覽頁面 (StreamBuilder) ---
+class CustomerListPage extends StatelessWidget {
+  const CustomerListPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('至臻名單總覽')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('customers').orderBy('lastUpdated', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          final docs = snapshot.data!.docs;
+          return ListView.builder(
+            padding: const EdgeInsets.all(15),
+            itemCount: docs.length,
+            itemBuilder: (context, i) {
+              final data = docs[i].data() as Map<String, dynamic>;
+              return Card(
+                color: LuxuryColor.card,
+                margin: const EdgeInsets.only(bottom: 10),
+                child: ListTile(
+                  title: Text(data['name'] ?? '', style: const TextStyle(color: LuxuryColor.gold)),
+                  subtitle: Text(data['phone'] ?? ''),
+                  trailing: const Icon(Icons.chevron_right, color: LuxuryColor.darkGold),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
