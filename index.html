@@ -10,7 +10,6 @@
         .active { display: block; }
         h1 { color: #D4AF37; text-align: center; font-size: 20px; margin: 8px 0; letter-spacing: 2px; }
 
-        /* 呼吸邊框輸入框 */
         .form-group { margin-bottom: 10px; }
         label { display: block; color: #D4AF37; font-size: 15px; font-weight: bold; margin-bottom: 3px; }
         input, select, textarea {
@@ -29,23 +28,13 @@
             color: #000; border: none; border-radius: 25px; font-size: 18px; font-weight: bold; margin-top: 5px;
         }
 
-        /* 檔案抽屜封面優化 */
+        /* 檔案抽屜樣式 */
         .drawer { background: #111; border: 1.2px solid #D4AF37; margin-bottom: 12px; border-radius: 12px; overflow: hidden; }
         .drawer-header { padding: 12px 15px; cursor: pointer; background: #1a1a1a; position: relative; border-bottom: 1px solid #222; }
-        .drawer-header h3 { margin: 0 0 6px 0; font-size: 19px; color: #FFD700; display: flex; align-items: center; }
-        
-        /* 封面顯示：下次預約重點 */
-        .drawer-header .cover-summary { 
-            font-size: 14px; 
-            color: #B8860B; 
-            line-height: 1.5; 
-            background: rgba(212, 175, 55, 0.05);
-            padding: 5px 8px;
-            border-radius: 6px;
-        }
+        .drawer-header h3 { margin: 0 0 6px 0; font-size: 19px; color: #FFD700; }
+        .drawer-header .cover-summary { font-size: 14px; color: #B8860B; line-height: 1.5; background: rgba(212, 175, 55, 0.05); padding: 5px 8px; border-radius: 6px; }
         .drawer-header .arrow { position: absolute; right: 15px; top: 15px; font-size: 12px; color: #D4AF37; }
 
-        /* 點開後的內容 */
         .drawer-content { display: none; padding: 12px; background: #050505; }
         .history-tag { font-size: 13px; color: #8A6D3B; margin: 15px 0 8px 0; padding-left: 5px; border-left: 3px solid #D4AF37; }
         .record-item { padding: 10px; margin-bottom: 10px; background: #111; border-radius: 8px; border: 0.5px solid #333; }
@@ -58,19 +47,23 @@
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8A6D3B; font-size: 11px; }
         .nav-item.active-nav { color: #FFD700; }
         .nav-icon { font-size: 20px; }
+
+        /* 提示文字樣式 */
+        #search-tip { font-size: 12px; color: #FFD700; margin-top: -5px; margin-bottom: 5px; min-height: 15px; }
     </style>
 </head>
 <body>
 
     <div id="page1" class="page active">
         <h1>美業客戶管理</h1>
+        <div id="search-tip"></div>
         <div class="row">
-            <div class="form-group" style="flex:1;"><label>貴賓姓名</label><input type="text" id="name" placeholder="請輸入姓名"></div>
-            <div class="form-group" style="flex:1.5;"><label>聯繫電話</label><input type="tel" id="phone"></div>
+            <div class="form-group" style="flex:1;"><label>貴賓姓名</label><input type="text" id="name" oninput="autoSearch()"></div>
+            <div class="form-group" style="flex:1.5;"><label>聯繫電話</label><input type="tel" id="phone" oninput="autoSearch()"></div>
         </div>
         <div class="row">
-            <div class="form-group" style="flex:1;"><label>血型</label><select id="blood"><option>A型</option><option>B型</option><option>O型</option><option>AB型</option></select></div>
-            <div class="form-group" style="flex:1;"><label>星座</label><select id="constellation"><option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option><option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option><option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>雙魚座</option></select></div>
+            <div class="form-group" style="flex:1;"><label>血型</label><select id="blood"><option value="">選擇</option><option>A型</option><option>B型</option><option>O型</option><option>AB型</option></select></div>
+            <div class="form-group" style="flex:1;"><label>星座</label><select id="constellation"><option value="">選擇</option><option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option><option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option><option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>雙魚座</option></select></div>
         </div>
         <div class="form-group"><label>提醒下次預約項目</label><input type="text" id="bookItem"></div>
         <div class="form-group"><label>提醒下次預約時間</label><input type="datetime-local" id="bookTime"></div>
@@ -89,14 +82,57 @@
     </div>
 
     <script>
-        const DB_KEY = 'BeautySystem_V3';
+        const DB_KEY = 'BeautySystem_V4';
+
+        // 核心功能：輸入姓名自動搜尋
+        function autoSearch() {
+            const nameInput = document.getElementById('name').value.trim();
+            const phoneInput = document.getElementById('phone').value.trim();
+            const tip = document.getElementById('search-tip');
+            
+            if(!nameInput) {
+                tip.innerText = "";
+                return;
+            }
+
+            let archive = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+            
+            // 找出所有名字相符的客戶 (支援同名)
+            let matches = Object.keys(archive).filter(key => key.split('_')[0] === nameInput);
+
+            if(matches.length === 1) {
+                // 只有一個人，直接帶入資訊
+                fillData(archive[matches[0]][0]);
+                tip.innerText = "✨ 已自動帶入此客人的基本資料";
+            } else if (matches.length > 1) {
+                // 有多人同名，嘗試用電話比對
+                tip.innerText = "⚠️ 發現同名客，請輸入電話進行識別...";
+                let specificMatch = matches.find(key => key.split('_')[1] === phoneInput);
+                if(specificMatch) {
+                    fillData(archive[specificMatch][0]);
+                    tip.innerText = "✅ 已透過電話識別正確客戶";
+                }
+            } else {
+                tip.innerText = "🆕 新客登記";
+            }
+        }
+
+        function fillData(lastRecord) {
+            document.getElementById('blood').value = lastRecord.blood || "";
+            document.getElementById('constellation').value = lastRecord.constellation || "";
+            document.getElementById('phone').value = lastRecord.phone || "";
+        }
 
         function handleSave() {
             const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             if(!name) { alert('請填寫姓名'); return; }
 
+            // 存儲用的 Key 結合 姓名與電話，解決同名問題
+            const storageKey = `${name}_${phone}`;
+
             const newRecord = {
-                phone: document.getElementById('phone').value,
+                phone: phone,
                 blood: document.getElementById('blood').value,
                 constellation: document.getElementById('constellation').value,
                 bookItem: document.getElementById('bookItem').value,
@@ -106,15 +142,13 @@
             };
 
             let archive = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
-            
-            // 同名客戶合併邏輯
-            if(!archive[name]) archive[name] = [];
-            archive[name].push(newRecord);
+            if(!archive[storageKey]) archive[storageKey] = [];
+            archive[storageKey].push(newRecord);
             
             localStorage.setItem(DB_KEY, JSON.stringify(archive));
-            
-            alert('已歸檔至 ' + name + ' 的抽屜');
-            document.querySelectorAll('input, textarea').forEach(i => i.value = '');
+            alert('歸檔成功！');
+            document.querySelectorAll('input, textarea, select').forEach(i => i.value = '');
+            document.getElementById('search-tip').innerText = "";
             showPage(2);
         }
 
@@ -133,16 +167,17 @@
         function renderList() {
             const container = document.getElementById('list-container');
             const archive = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
-            const names = Object.keys(archive).reverse();
+            const keys = Object.keys(archive).reverse();
 
-            if(names.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#8A6D3B; margin-top:50px;">目前尚無客戶資料</p>';
+            if(keys.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#8A6D3B; margin-top:50px;">倉庫尚無資料</p>';
                 return;
             }
             
-            container.innerHTML = names.map(name => {
-                const records = archive[name];
-                const latest = records[records.length - 1]; // 取得最後一筆紀錄作為封面資訊
+            container.innerHTML = keys.map(key => {
+                const name = key.split('_')[0];
+                const records = archive[key];
+                const latest = records[records.length - 1];
                 
                 return `
                 <div class="drawer">
@@ -150,20 +185,18 @@
                         <span class="arrow">▼</span>
                         <h3>👤 ${name}</h3>
                         <div class="cover-summary">
-                            <strong>🔔 預約項目：</strong>${latest.bookItem || '未設定'}<br>
-                            <strong>⏰ 預約時間：</strong>${latest.bookTime ? latest.bookTime.replace('T', ' ') : '未設定'}
+                            <strong>🔔 預約：</strong>${latest.bookItem || '未設'}<br>
+                            <strong>⏰ 時間：</strong>${latest.bookTime ? latest.bookTime.replace('T', ' ') : '未設'}
                         </div>
                     </div>
                     <div class="drawer-content">
-                        <p>📞 電話：${latest.phone || '無'}</p>
+                        <p>📞 電話：${latest.phone}</p>
                         <p>✨ 個人：${latest.blood} / ${latest.constellation}</p>
-                        
                         <div class="history-tag">歷史紀錄 (共 ${records.length} 筆)</div>
                         ${records.slice().reverse().map(rec => `
                             <div class="record-item">
-                                <p style="font-size:12px; color:#888;">🕒 登記日期：${rec.saveTime}</p>
+                                <p style="font-size:12px; color:#888;">🕒 登記：${rec.saveTime}</p>
                                 <p>📌 項目：${rec.bookItem || '無'}</p>
-                                <p>📅 時間：${rec.bookTime ? rec.bookTime.replace('T', ' ') : '未設'}</p>
                                 <p>📝 備註：${rec.note || '無'}</p>
                             </div>
                         `).join('')}
