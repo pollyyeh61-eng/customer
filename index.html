@@ -10,7 +10,7 @@
         .active { display: block; }
         h1 { color: #D4AF37; text-align: center; font-size: 22px; margin: 10px 0; letter-spacing: 2px; }
 
-        /* 表單樣式 */
+        /* 呼吸邊框輸入框 */
         .form-group { margin-bottom: 12px; }
         label { display: block; color: #D4AF37; font-size: 16px; font-weight: bold; margin-bottom: 4px; }
         input, select, textarea {
@@ -29,38 +29,15 @@
             color: #000; border: none; border-radius: 25px; font-size: 18px; font-weight: bold; margin-top: 8px;
         }
 
-        /* 抽屜式卡片樣式 */
-        .drawer {
-            background: #111;
-            border: 1px solid #D4AF37;
-            margin-bottom: 8px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        /* 抽屜標題 (外殼) */
-        .drawer-header {
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            background: #1a1a1a;
-        }
+        /* 抽屜樣式 */
+        .drawer { background: #111; border: 1px solid #D4AF37; margin-bottom: 8px; border-radius: 10px; overflow: hidden; }
+        .drawer-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #1a1a1a; }
         .drawer-header h3 { margin: 0; font-size: 18px; color: #FFD700; }
-        .drawer-header span { font-size: 14px; color: #D4AF37; }
-
-        /* 抽屜內容 (內部資料) */
-        .drawer-content {
-            display: none; /* 預設隱藏 */
-            padding: 12px;
-            border-top: 1px solid #333;
-            background: #0a0a0a;
-        }
+        .drawer-content { display: none; padding: 12px; border-top: 1px solid #333; background: #0a0a0a; }
         .drawer-content p { margin: 8px 0; font-size: 15px; border-bottom: 1px solid #222; padding-bottom: 4px; }
-        .drawer.open .drawer-content { display: block; } /* 打開狀態 */
-        .drawer.open .drawer-header { background: #222; }
+        .drawer.open .drawer-content { display: block; }
 
-        /* 底部選單 */
+        /* 底部導覽 */
         .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; display: flex; height: 60px; border-top: 1px solid #D4AF37; }
         .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8A6D3B; font-size: 12px; }
         .nav-item.active-nav { color: #FFD700; }
@@ -82,7 +59,7 @@
         <div class="form-group"><label>提醒下次預約項目</label><input type="text" id="bookItem"></div>
         <div class="form-group"><label>提醒下次預約時間</label><input type="datetime-local" id="bookTime"></div>
         <div class="form-group"><label>心得備註</label><textarea id="note" rows="2"></textarea></div>
-        <button class="btn-save" onclick="handleSave()">確認儲存並跳轉</button>
+        <button class="btn-save" onclick="handleSave()">確認儲存</button>
     </div>
 
     <div id="page2" class="page">
@@ -96,6 +73,9 @@
     </div>
 
     <script>
+        // 核心：統一使用這個資料庫名稱
+        const DB_NAME = 'BeautyClientStorage';
+
         function handleSave() {
             const name = document.getElementById('name').value;
             if(!name) { alert('請輸入姓名'); return; }
@@ -111,36 +91,48 @@
                 date: new Date().toLocaleDateString()
             };
 
-            let list = JSON.parse(localStorage.getItem('holyData') || '[]');
-            list.push(newCustomer);
-            localStorage.setItem('holyData', JSON.stringify(list));
+            // 1. 先抓出目前倉庫裡的所有資料
+            let currentList = JSON.parse(localStorage.getItem(DB_NAME) || '[]');
             
-            showPage(2);
+            // 2. 把新的人放進去
+            currentList.push(newCustomer);
+            
+            // 3. 把整個更新後的倉庫存回手機
+            localStorage.setItem(DB_NAME, JSON.stringify(currentList));
+            
+            alert('資料已放入倉庫！');
+            
+            // 清空欄位
             document.querySelectorAll('#page1 input, #page1 textarea').forEach(i => i.value = '');
+            
+            // 直接跳轉到名單頁確認
+            showPage(2);
         }
 
         function showPage(num) {
-            document.getElementById('page1').style.display = (num === 1) ? 'block' : 'none';
-            document.getElementById('page2').style.display = (num === 2) ? 'block' : 'none';
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById('page' + num).style.display = 'block';
+            
             document.getElementById('nav1').classList.toggle('active-nav', num === 1);
             document.getElementById('nav2').classList.toggle('active-nav', num === 2);
+            
             if(num === 2) renderList();
         }
 
-        // 核心功能：切換抽屜開關
-        function toggleDrawer(element) {
-            element.parentElement.classList.toggle('open');
+        function toggleDrawer(header) {
+            header.parentElement.classList.toggle('open');
         }
 
         function renderList() {
             const container = document.getElementById('list-container');
-            const list = JSON.parse(localStorage.getItem('holyData') || '[]');
+            // 核心：從同一個倉庫名稱讀取
+            const list = JSON.parse(localStorage.getItem(DB_NAME) || '[]');
+            
             if(list.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#D4AF37; font-size:16px;">尚無記錄</p>';
+                container.innerHTML = '<p style="text-align:center; color:#D4AF37; padding-top:50px;">倉庫內目前沒有資料</p>';
                 return;
             }
             
-            // 渲染為抽屜結構
             container.innerHTML = list.reverse().map(c => `
                 <div class="drawer">
                     <div class="drawer-header" onclick="toggleDrawer(this)">
@@ -158,6 +150,9 @@
                 </div>
             `).join('');
         }
+
+        // 頁面載入時確保在第一頁
+        window.onload = () => { showPage(1); };
     </script>
 </body>
-</html>
+</html>SDS
