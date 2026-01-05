@@ -3,210 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HOLY HAIR VIP系統 - 動態發光版</title>
+    <title>HOLY HAIR VIP系統</title>
     <style>
-        :root {
-            --gold: #FFD700;       /* 亮金色 */
-            --bright-gold: #FFF5AD; /* 呼吸發光最亮色 */
-            --border-gray: #777777; /* 常態下的框線顏色 */
-            --dark-bg: #000000;
-        }
-// --- 您的 Firebase 配置 (金鑰區) ---
-const firebaseConfig = {
-  apiKey: "您的 Google API Key", // 請填入您原本的金鑰
-  authDomain: "pollyyeh61-eng.firebaseapp.com",
-  projectId: "pollyyeh61-eng",
-  storageBucket: "pollyyeh61-eng.appspot.com",
-  messagingSenderId: "您的 ID",
-  appId: "您的 App ID"
-};
+        body { background-color: #000; color: #fff; font-family: sans-serif; margin: 0; padding-bottom: 80px; }
+        .page { display: none; padding: 20px; }
+        .active { display: block; }
+        h1 { color: #D4AF37; text-align: center; font-size: 28px; }
 
-// --- 初始化 Firebase 與 同步邏輯 ---
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// 儲存資料時同步執行：
-function saveData(data) {
-    // 1. 存本地 (LocalStorage)
-    localStorage.setItem('customerData', JSON.stringify(data));
-    
-    // 2. 存雲端 (Firebase)
-    db.collection("customers").add(data)
-      .then(() => console.log("同步成功"))
-      .catch((error) => console.error("同步失敗", error));
-}
-        body {
-            font-family: sans-serif;
-            background-color: var(--dark-bg);
-            color: white;
-            margin: 0;
-            padding: 20px;
-            /* 增加底部緩衝，防止按鈕被壓到 */
-            padding-bottom: 120px; 
-        }
-
-        /* 呼吸動畫定義 */
-        @keyframes breath {
-            0% { box-shadow: 0 0 5px var(--gold); border-color: var(--gold); }
-            50% { box-shadow: 0 0 20px var(--bright-gold); border-color: var(--bright-gold); }
-            100% { box-shadow: 0 0 5px var(--gold); border-color: var(--gold); }
-        }
-
-        .header h1 { color: var(--gold); text-align: center; font-size: 32px; margin: 10px 0; }
-        .header p { text-align: center; color: #ccc; font-size: 14px; margin-bottom: 20px; }
-
-        label {
-            display: block;
-            color: #FFFFFF;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            margin-top: 15px;
-        }
-
-        /* 輸入框常態：清楚的框線 */
+        /* 針對老花眼優化：沒點擊時框線也要非常清楚 */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; color: #fff; font-size: 20px; font-weight: bold; margin-bottom: 8px; }
+        
         input, select, textarea {
             width: 100%;
-            padding: 16px;
-            background-color: #111;
-            border: 2.5px solid var(--border-gray); 
-            border-radius: 15px;
-            color: var(--gold);
+            padding: 15px;
+            background-color: #1a1a1a;
+            /* 使用亮灰色 2px 寬，確保不點擊也清晰 */
+            border: 2px solid #cccccc; 
+            border-radius: 12px;
+            color: #D4AF37;
             font-size: 20px;
             box-sizing: border-box;
-            outline: none;
-            transition: all 0.3s ease;
         }
 
-        /* 點擊時觸發呼吸發光效果 */
         input:focus, select:focus, textarea:focus {
-            animation: breath 2s infinite ease-in-out;
-            background-color: #000;
+            border-color: #D4AF37; /* 點擊時變亮金色 */
+            outline: none;
         }
 
-        .reserve-box {
-            border: 2px dashed var(--gold);
-            padding: 15px;
-            border-radius: 15px;
-            margin-top: 25px;
-            background-color: #0a0a0a;
-        }
-
-        /* 修改：確認儲存按鈕 - 改色並往上提 */
-        .btn-submit {
+        .btn-save {
             width: 100%;
             padding: 18px;
-            /* 改為顯眼的亮金色背景 */
-            background: linear-gradient(135deg, #FFD700, #B8860B);
-            color: black; /* 黑字更清楚 */
+            background: #D4AF37;
+            color: #000;
             border: none;
-            border-radius: 40px;
+            border-radius: 30px;
             font-size: 22px;
             font-weight: bold;
-            margin-top: 40px; /* 增加上方距離，往上提 */
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            margin-top: 10px;
         }
 
-        /* 頁面切換控制 */
-        .page { display: none; }
-        .page.active { display: block; }
+        /* 名單卡片：清楚的金色外框 */
+        .card {
+            background: #222;
+            border: 2px solid #D4AF37;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+        .card h3 { margin: 0; color: #D4AF37; font-size: 24px; }
+        .card p { margin: 8px 0; font-size: 18px; color: #eee; border-bottom: 1px solid #444; padding-bottom: 5px; }
 
-        /* 底部導覽列 */
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(15, 15, 15, 0.95);
-            display: flex;
-            height: 75px;
-            border-top: 2px solid #333;
-            z-index: 100;
-        }
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #777;
-            font-size: 14px;
-        }
-        .nav-item.active { color: var(--gold); }
-        .nav-icon { font-size: 26px; margin-bottom: 2px; }
+        /* 底部選單 */
+        .nav { position: fixed; bottom: 0; width: 100%; background: #111; display: flex; height: 75px; border-top: 1px solid #333; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; text-decoration: none; }
+        .nav-item.active-nav { color: #D4AF37; }
+        .nav-icon { font-size: 28px; }
     </style>
 </head>
 <body>
 
-    <div id="page-input" class="page active">
-        <div class="header">
-            <h1>HOLY HAIR</h1>
-            <p>VIP SYNC SYSTEM</p>
+    <div id="page1" class="page active">
+        <h1>HOLY HAIR</h1>
+        <div class="form-group">
+            <label>貴賓姓名</label>
+            <input type="text" id="name" placeholder="請輸入姓名">
         </div>
-
-        <label>貴賓姓名</label>
-        <input type="text" id="name" placeholder="請輸入姓名">
-
-        <label>聯繫電話</label>
-        <input type="tel" id="phone" placeholder="請輸入電話">
-
+        <div class="form-group">
+            <label>聯繫電話</label>
+            <input type="tel" id="phone" placeholder="請輸入電話">
+        </div>
         <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
+            <div class="form-group" style="flex:1;">
                 <label>血型</label>
-                <select id="blood">
-                    <option>A 型</option><option>B 型</option><option>O 型</option><option>AB 型</option>
-                </select>
+                <select id="blood"><option>A型</option><option>B型</option><option>O型</option><option>AB型</option></select>
             </div>
-            <div style="flex: 1;">
+            <div class="form-group" style="flex:1;">
                 <label>星座</label>
-                <select id="constellation">
-                    <option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option>
-                    <option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option>
-                    <option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>雙魚座</option>
-                </select>
+                <select id="constellation"><option>牡羊座</option><option>金牛座</option><option>雙子座</option><option>巨蟹座</option><option>獅子座</option><option>處女座</option><option>天秤座</option><option>天蠍座</option><option>射手座</option><option>摩羯座</option><option>水瓶座</option><option>雙魚座</option></select>
             </div>
         </div>
-
-        <div class="reserve-box">
-            <label style="margin-top: 0; color: var(--gold);">📅 下次預約安排</label>
-            <input type="datetime-local" id="next-time" style="margin-bottom: 10px;">
-            <input type="text" id="next-item" placeholder="預約項目 (如：染髮)">
+        <div class="form-group">
+            <label>預約時間與項目</label>
+            <input type="text" id="booking" placeholder="例如：1/20 14:00 染髮">
         </div>
-
-        <label>心得備註</label>
-        <textarea id="note" rows="3" placeholder="在此輸入內容..."></textarea>
-
-        <button class="btn-submit" onclick="alert('客戶資料已成功同步！')">確認儲存資料</button>
+        <div class="form-group">
+            <label>心得備註</label>
+            <textarea id="note" rows="3" placeholder="請在此輸入內容..."></textarea>
+        </div>
+        <button class="btn-save" onclick="handleSave()">確認儲存資料</button>
     </div>
 
-    <div id="page-list" class="page">
-        <div class="header"><h1>名單總覽</h1></div>
-        <div style="text-align: center; color: #888; margin-top: 50px; font-size: 20px;">
-            目前尚無資料記錄
-        </div>
+    <div id="page2" class="page">
+        <h1>名單總覽</h1>
+        <div id="list-container"></div>
     </div>
 
-    <div class="nav-bar">
-        <div class="nav-item active" onclick="showPage('page-input', this)">
-            <span class="nav-icon">💎</span>
-            <span>資料登記</span>
+    <div class="nav">
+        <div class="nav-item active-nav" id="nav1" onclick="showPage(1)">
+            <span class="nav-icon">💎</span><span style="font-size:14px;">資料登記</span>
         </div>
-        <div class="nav-item" onclick="showPage('page-list', this)">
-            <span class="nav-icon">📜</span>
-            <span>名單總覽</span>
+        <div class="nav-item" id="nav2" onclick="showPage(2)">
+            <span class="nav-icon">📜</span><span style="font-size:14px;">名單總覽</span>
         </div>
     </div>
 
     <script>
-        function showPage(pageId, element) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            element.classList.add('active');
-            window.scrollTo(0, 0);
+        // 核心儲存功能：確保存入手機空間
+        function handleSave() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            if(!name || !phone) { alert('請填寫姓名與電話'); return; }
+
+            const newCustomer = {
+                name: name,
+                phone: phone,
+                blood: document.getElementById('blood').value,
+                constellation: document.getElementById('constellation').value,
+                booking: document.getElementById('booking').value,
+                note: document.getElementById('note').value,
+                date: new Date().toLocaleString()
+            };
+
+            // 讀取舊資料 -> 加入新資料 -> 存回 localStorage
+            let list = JSON.parse(localStorage.getItem('holyHairData') || '[]');
+            list.push(newCustomer);
+            localStorage.setItem('holyHairData', JSON.stringify(list));
+
+            alert('儲存成功！可至名單總覽查看。');
+            
+            // 清空表單
+            document.getElementById('name').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('booking').value = '';
+            document.getElementById('note').value = '';
+        }
+
+        // 分頁切換功能
+        function showPage(num) {
+            document.getElementById('page1').style.display = (num === 1) ? 'block' : 'none';
+            document.getElementById('page2').style.display = (num === 2) ? 'block' : 'none';
+            
+            document.getElementById('nav1').classList.toggle('active-nav', num === 1);
+            document.getElementById('nav2').classList.toggle('active-nav', num === 2);
+
+            if(num === 2) {
+                renderList(); // 切換到第二頁時重新讀取資料
+            }
+        }
+
+        // 讀取並顯示名單
+        function renderList() {
+            const container = document.getElementById('list-container');
+            const list = JSON.parse(localStorage.getItem('holyHairData') || '[]');
+            
+            if(list.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#888; font-size:20px; margin-top:50px;">目前尚無資料記錄</p>';
+                return;
+            }
+
+            // 將最新儲存的排在最上面
+            container.innerHTML = list.reverse().map(c => `
+                <div class="card">
+                    <h3>${c.name} <span style="font-size:14px; color:#888;">${c.date}</span></h3>
+                    <p>📞 電話：${c.phone}</p>
+                    <p>✨ ${c.blood} / ${c.constellation}</p>
+                    <p>📅 預約：${c.booking}</p>
+                    <p>📝 備註：${c.note}</p>
+                </div>
+            `).join('');
         }
     </script>
 </body>
 </html>
-
